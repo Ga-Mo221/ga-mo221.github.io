@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dream House – 3D Environment · Nguyễn Văn Hậu</title>
+  <link rel="icon" type="image/png" href="assets/img/code.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Inter:wght@300;400;500&family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0a0a0f; --ink2: #12121a; --ink3: #1a1a26;
+      --gold: #c8973a; --gold2: #e8b85a;
+      --jade2: #5cb89e;
+      --text: #e8e0d0; --text2: #9a8f80;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--ink); color: var(--text); font-family: 'Inter', sans-serif; font-weight: 300; overflow-x: hidden; }
+
+    #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.4; }
+
+    .cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .3s, height .3s; mix-blend-mode: difference; }
+    .cursor-ring { width: 36px; height: 36px; border: 1px solid rgba(200,151,58,.5); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: all .15s ease; }
+
+    #nav {
+      position: fixed; left: 0; top: 0; height: 100vh; width: 72px;
+      background: rgba(10,10,15,.92); border-right: 1px solid rgba(200,151,58,.12);
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 36px; z-index: 100; padding: 24px 0;
+    }
+    .nav-logo { position: absolute; top: 28px; font-family: 'Cinzel', serif; font-size: 11px; font-weight: 900; color: var(--gold); letter-spacing: 3px; writing-mode: vertical-rl; }
+    .nav-link { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text2); text-decoration: none; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; transition: all .4s ease; position: relative; }
+    .nav-link i { font-size: 18px; }
+    .nav-link::after { content: ''; position: absolute; left: -1px; width: 2px; height: 0; background: var(--gold); transition: height .4s ease; transform: translateX(-50%); }
+    .nav-link:hover, .nav-link.active { color: var(--gold); }
+    .nav-link:hover::after, .nav-link.active::after { height: 100%; }
+
+    /* ── LANGUAGE SWITCHER ── */
+    .lang-switcher {
+      position: absolute;
+      bottom: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .lang-toggle {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text2); transition: color 0.3s ease;
+      padding: 6px;
+    }
+    .lang-toggle:hover { color: var(--gold); }
+    .lang-toggle i { font-size: 18px; }
+    .lang-current { font-size: 9px; letter-spacing: 2px; font-family: 'Inter', sans-serif; font-weight: 500; }
+    .lang-dropdown {
+      position: absolute;
+      left: 64px;
+      bottom: 0;
+      background: rgba(10,10,15,0.97);
+      border: 1px solid rgba(200,151,58,0.25);
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column;
+      min-width: 130px;
+      opacity: 0; pointer-events: none;
+      transform: translateX(-8px);
+      transition: all 0.3s ease;
+      z-index: 200;
+    }
+    .lang-dropdown.open { opacity: 1; pointer-events: all; transform: translateX(0); }
+    .lang-opt {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text2); font-size: 12px; letter-spacing: 1px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(200,151,58,0.08);
+      white-space: nowrap;
+    }
+    .lang-opt:last-child { border-bottom: none; }
+    .lang-opt:hover { color: var(--gold); background: rgba(200,151,58,0.06); }
+    .lang-opt.active { color: var(--gold); }
+    .lang-opt.active::after { content: '◆'; font-size: 6px; margin-left: auto; color: var(--gold); }
+    .lang-flag { font-size: 16px; }
+
+    .nav-socials { position: absolute; bottom: 28px; display: flex; flex-direction: column; gap: 16px; }
+    .nav-socials a { color: var(--text2); font-size: 16px; transition: color .3s; text-decoration: none; }
+    .nav-socials a:hover { color: var(--gold); }
+
+    main { margin-left: 72px; position: relative; z-index: 1; }
+
+    .page-title {
+      padding: 100px 80px 60px; background: var(--ink2);
+      border-bottom: 1px solid rgba(200,151,58,.1); position: relative; overflow: hidden;
+    }
+    .page-title::before {
+      content: ''; position: absolute; bottom: 0; left: 80px; right: 80px; height: 1px;
+      background: linear-gradient(to right, var(--gold), transparent);
+    }
+    .breadcrumb-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--text2); margin-bottom: 20px;
+    }
+    .breadcrumb-row a { color: var(--text2); text-decoration: none; transition: color .3s; }
+    .breadcrumb-row a:hover { color: var(--gold); }
+    .breadcrumb-row .sep { color: rgba(200,151,58,.4); }
+    .breadcrumb-row .current { color: var(--gold); }
+    .page-title h1 {
+      font-family: 'Cinzel', serif; font-size: clamp(28px, 5vw, 56px);
+      font-weight: 900; color: #fff; line-height: 1;
+      opacity: 0; animation: fadeUp 1s .3s forwards;
+    }
+    .page-title-cat {
+      font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 6px;
+      color: var(--gold); text-transform: uppercase;
+      margin-top: 12px; display: flex; align-items: center; gap: 12px;
+      opacity: 0; animation: fadeUp 1s .5s forwards;
+    }
+    .page-title-cat::before { content: ''; display: block; width: 30px; height: 1px; background: var(--gold); }
+
+    .detail-section { padding: 80px; }
+    .project-layout { display: grid; grid-template-columns: 1fr 340px; gap: 60px; align-items: start; }
+
+    .slider-wrap { position: relative; background: var(--ink2); overflow: hidden; }
+    .slider-track { display: flex; transition: transform .6s cubic-bezier(.25,.46,.45,.94); }
+    .slide { min-width: 100%; aspect-ratio: 16/9; overflow: hidden; }
+    .slide img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.9); display: block; }
+    .slider-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px; background: rgba(10,10,15,.8);
+      border: 1px solid rgba(200,151,58,.3); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; cursor: pointer; z-index: 10; transition: all .3s ease;
+    }
+    .slider-btn:hover { background: var(--gold); color: var(--ink); }
+    .slider-prev { left: 16px; }
+    .slider-next { right: 16px; }
+    .slider-dots { display: flex; gap: 8px; justify-content: center; padding: 16px 0; }
+    .slider-dot { width: 6px; height: 6px; background: rgba(200,151,58,.3); cursor: pointer; transform: rotate(45deg); transition: all .3s; }
+    .slider-dot.active { background: var(--gold); width: 18px; transform: rotate(0deg); }
+
+    .project-info {
+      padding: 36px; border: 1px solid rgba(200,151,58,.15);
+      background: rgba(200,151,58,.02); position: relative;
+    }
+    .project-info::before { content: ''; position: absolute; top: 0; left: 0; width: 40px; height: 40px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+    .project-info::after { content: ''; position: absolute; bottom: 0; right: 0; width: 40px; height: 40px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+    .project-info h3 { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: var(--gold); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(200,151,58,.15); }
+    .info-row { padding: 12px 0; border-bottom: 1px solid rgba(200,151,58,.08); display: flex; flex-direction: column; gap: 4px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-size: 9px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+    .info-value { font-size: 14px; color: var(--text); }
+    .info-value a { color: var(--gold2); text-decoration: none; transition: color .3s; }
+    .info-value a:hover { color: var(--gold); text-decoration: underline; }
+
+    .project-desc { margin-top: 60px; }
+    .section-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+    .section-label::before { content: ''; display: block; width: 40px; height: 1px; background: var(--gold); }
+    .desc-title { font-family: 'Cinzel', serif; font-size: clamp(28px,4vw,48px); font-weight: 900; color: #fff; margin-bottom: 32px; line-height: 1.1; }
+    .desc-body p { font-size: 15px; color: var(--text2); line-height: 2; margin-bottom: 16px; }
+    .desc-body p strong { color: var(--gold); font-weight: 500; }
+
+    .art-divider { display: flex; align-items: center; gap: 20px; margin: 56px 0; }
+    .art-divider-line { flex: 1; height: 1px; background: rgba(200,151,58,.2); }
+    .art-divider-ornament { width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); }
+
+    .features-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; margin-bottom: 36px; display: flex; align-items: center; gap: 12px; }
+    .features-label::before { content: ''; display: block; width: 40px; height: 1px; background: var(--gold); }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .feature-card { padding: 40px 36px; background: var(--ink2); border: 1px solid rgba(200,151,58,.08); position: relative; overflow: hidden; transition: all .4s ease; }
+    .feature-card::before { content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 0; background: var(--gold); transition: height .4s ease; }
+    .feature-card:hover { border-color: rgba(200,151,58,.3); }
+    .feature-card:hover::before { height: 100%; }
+    .feature-card-icon { font-size: 28px; color: var(--gold); margin-bottom: 20px; display: block; }
+    .feature-card h4 { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 12px; line-height: 1.4; }
+    .feature-card p { font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+    .image-grid-section { padding: 0 80px 80px; }
+    .image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .grid-img-wrap { overflow: hidden; aspect-ratio: 4/3; background: var(--ink2); }
+    .grid-img-wrap img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.8) saturate(.8); transition: all .6s ease; cursor: pointer; display: block; }
+    .grid-img-wrap:hover img { transform: scale(1.08); filter: brightness(1) saturate(1); }
+
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(10,10,15,.96); z-index: 9000; align-items: center; justify-content: center; }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 90vw; max-height: 88vh; object-fit: contain; }
+    .lb-close { position: absolute; top: 24px; right: 32px; font-size: 28px; color: var(--gold); cursor: pointer; background: none; border: none; }
+    .lb-prev, .lb-next { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; background: rgba(200,151,58,.15); border: 1px solid rgba(200,151,58,.3); color: var(--gold); font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .3s; }
+    .lb-prev { left: 20px; } .lb-next { right: 20px; }
+    .lb-prev:hover, .lb-next:hover { background: var(--gold); color: var(--ink); }
+
+    .back-bar { padding: 0 80px 24px; }
+    .back-btn { display: inline-flex; align-items: center; gap: 10px; color: var(--text2); text-decoration: none; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; transition: color .3s; }
+    .back-btn:hover { color: var(--gold); }
+
+    footer { background: var(--ink); border-top: 1px solid rgba(200,151,58,.1); padding: 32px 80px 32px 152px; display: flex; justify-content: space-between; align-items: center; }
+    footer p { font-size: 12px; color: var(--text2); letter-spacing: 2px; }
+    .footer-name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); letter-spacing: 4px; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity .8s ease, transform .8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1100px) { .project-layout { grid-template-columns: 1fr; } .project-info { position: static; } }
+    @media (max-width: 768px) {
+      .detail-section, .image-grid-section, .back-bar { padding-left: 24px; padding-right: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .image-grid { grid-template-columns: 1fr 1fr; }
+      footer { padding-left: 24px; padding-right: 24px; flex-direction: column; gap: 8px; }
+    }
+    @media (max-width: 640px) {
+      main { margin-left: 0; padding-top: 72px; }
+      #nav { height: 72px; width: 100%; top: 0; flex-direction: row; justify-content: center; border-right: none; border-bottom: 1px solid rgba(200,151,58,0.12); }
+      .nav-logo, .nav-socials { display: none; }
+      .nav-link span { display: none; }
+      .lang-switcher { position: static; bottom: auto; }
+      .lang-dropdown { left: 50%; bottom: 52px; transform: translateX(-50%) translateY(4px); }
+      .lang-dropdown.open { transform: translateX(-50%) translateY(0); }
+      .page-title { padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lb-close"><i class="bi bi-x-lg"></i></button>
+  <button class="lb-prev" id="lb-prev"><i class="bi bi-chevron-left"></i></button>
+  <img id="lb-img" src="" alt="">
+  <button class="lb-next" id="lb-next"><i class="bi bi-chevron-right"></i></button>
+</div>
+
+<nav id="nav">
+  <span class="nav-logo">NVH</span>
+  <a href="index.html#hero" class="nav-link"><i class="bi bi-house"></i><span data-i18n="nav_home">Home</span></a>
+  <a href="index.html#about" class="nav-link"><i class="bi bi-person"></i><span data-i18n="nav_about">About</span></a>
+  <a href="index.html#skills" class="nav-link"><i class="bi bi-cpu"></i><span data-i18n="nav_skills">Skills</span></a>
+  <a href="index.html#experience" class="nav-link"><i class="bi bi-briefcase"></i><span data-i18n="nav_cv">CV</span></a>
+  <a href="index.html#portfolio" class="nav-link active"><i class="bi bi-grid"></i><span data-i18n="nav_work">Work</span></a>
+  <a href="index.html#contact" class="nav-link"><i class="bi bi-envelope"></i><span data-i18n="nav_contact">Contact</span></a>
+
+  <div class="lang-switcher" id="lang-switcher">
+    <button class="lang-toggle" id="lang-toggle" title="Language">
+      <i class="bi bi-translate"></i>
+      <span class="lang-current" id="lang-current-label">VI</span>
+    </button>
+    <div class="lang-dropdown" id="lang-dropdown">
+      <button class="lang-opt active" data-lang="vi"><span class="lang-flag">🇻🇳</span><span>Việt</span></button>
+      <button class="lang-opt" data-lang="en"><span class="lang-flag">🇬🇧</span><span>English</span></button>
+      <button class="lang-opt" data-lang="ja"><span class="lang-flag">🇯🇵</span><span>日本語</span></button>
+    </div>
+  </div>
+
+  <div class="nav-socials">
+    <a href="https://www.facebook.com/22nguyenvanhau" target="_blank"><i class="bi bi-facebook"></i></a>
+    <a href="https://github.com/Ga-Mo221" target="_blank"><i class="bi bi-github"></i></a>
+    <a href="https://www.linkedin.com/in/hậu-nguyễn-b97a9b3bb/" target="_blank"><i class="bi bi-linkedin"></i></a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">
+    <div class="breadcrumb-row">
+      <a href="index.html" data-i18n="breadcrumb_home">Trang Chủ</a>
+      <span class="sep">◆</span>
+      <span class="current">Dream House</span>
+    </div>
+    <h1>DREAM HOUSE</h1>
+    <div class="page-title-cat" data-i18n="page_cat">3D Model · Environment · Blender</div>
+  </div>
+
+  <div class="detail-section">
+    <div class="project-layout">
+
+      <div>
+        <div class="slider-wrap reveal">
+          <div class="slider-track" id="sliderTrack">
+            <div class="slide"><img src="assets/img/portfolio/3Dmodel_DreamHouse3.png" alt="Dream House"></div>
+            <div class="slide"><img src="assets/img/portfolio/3Dmodel_DreamHouse2.png" alt="Dream House"></div>
+            <div class="slide"><img src="assets/img/portfolio/3Dmodel_DreamHouse1.png" alt="Dream House"></div>
+            <div class="slide"><img src="assets/img/portfolio/DreamHouse_state.png" alt="Dream House"></div>
+            <div class="slide"><img src="assets/img/portfolio/DreameHouse_House1_Base_color.png" alt="Dream House"></div>
+          </div>
+          <button class="slider-btn slider-prev" id="sliderPrev"><i class="bi bi-chevron-left"></i></button>
+          <button class="slider-btn slider-next" id="sliderNext"><i class="bi bi-chevron-right"></i></button>
+          <div class="slider-dots" id="sliderDots"></div>
+        </div>
+      </div>
+
+      <div class="project-info reveal" style="transition-delay:.2s">
+        <h3 data-i18n="info_title">Thông Tin Dự Án</h3>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_genre">Thể Loại</span>
+          <span class="info-value">3D Model · Environment</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_team">Nhân Sự</span>
+          <span class="info-value">1 <span data-i18n="info_people">người</span></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_contrib">Đóng Góp</span>
+          <span class="info-value">100% <span data-i18n="info_contrib_total">tổng sản phẩm</span></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Asset</span>
+          <span class="info-value" data-i18n="info_asset_self">Tự thiết kế</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_time">Thời Gian</span>
+          <span class="info-value" data-i18n="info_time_val">1 tuần (Model + Handpainted)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-desc reveal" style="transition-delay:.1s">
+      <div class="section-label" data-i18n="overview_label">Tổng Quan</div>
+      <h2 class="desc-title">Project Overview</h2>
+      <div class="desc-body">
+        <p data-i18n="desc_p1"><strong>Dream House</strong> là một dự án 3D environment modeling tập trung vào việc xây dựng một ngôi nhà trong mơ với phong cách hand-painted ấm áp và đầy cá tính.</p>
+        <p data-i18n="desc_p2">Toàn bộ asset — từ kiến trúc chính đến các chi tiết ngoại thất như hàng rào, cây cối, cột đèn — đều được modeling và texture thủ công trong Blender, tạo nên một scene hoàn chỉnh và có chiều sâu nghệ thuật.</p>
+        <p data-i18n="desc_p3">Dự án rèn luyện kỹ năng environment art: tổ chức tỷ lệ không gian, ánh sáng môi trường và kể chuyện qua hình ảnh kiến trúc.</p>
+      </div>
+    </div>
+
+    <div class="art-divider reveal"><div class="art-divider-line"></div><div class="art-divider-ornament"></div><div class="art-divider-line"></div></div>
+
+    <div class="reveal">
+      <div class="features-label" data-i18n="features_label">Tóm Tắt Dự Án</div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <i class="bi bi-house-heart feature-card-icon"></i>
+          <h4 data-i18n="feat1_title">Kiến Trúc Chi Tiết & Cân Bằng Tỷ Lệ</h4>
+          <p data-i18n="feat1_desc">Ngôi nhà được thiết kế với tỷ lệ kiến trúc hài hòa, bao gồm nhiều chi tiết ngoại thất: mái ngói, cửa sổ, ban công, hiên nhà — tạo cảm giác không gian sống thực tế.</p>
+        </div>
+        <div class="feature-card">
+          <i class="bi bi-tree feature-card-icon"></i>
+          <h4 data-i18n="feat2_title">Environment Dressing Hoàn Chỉnh</h4>
+          <p data-i18n="feat2_desc">Scene không chỉ có nhà mà còn bao gồm prop bổ trợ: hàng rào gỗ, cây cối, đường lát đá, cột đèn — tạo nên một môi trường sống động và có chiều sâu câu chuyện.</p>
+        </div>
+        <div class="feature-card">
+          <i class="bi bi-palette feature-card-icon"></i>
+          <h4 data-i18n="feat3_title">Hand-Painted Texture Nhiều Vật Liệu</h4>
+          <p data-i18n="feat3_desc">Mỗi vật liệu (gỗ, đá, mái ngói, kim loại) được paint riêng biệt với kỹ thuật layer màu sắc phù hợp, tạo ra sự đa dạng bề mặt trong khi vẫn giữ tính thống nhất phong cách.</p>
+        </div>
+        <div class="feature-card">
+          <i class="bi bi-lightbulb feature-card-icon"></i>
+          <h4 data-i18n="feat4_title">Lighting & Atmosphere</h4>
+          <p data-i18n="feat4_desc">Ánh sáng môi trường được thiết kế để tôn vinh phong cách hand-painted, sử dụng HDRI kết hợp area light để tạo bầu không khí ấm cúng và mang tính nghệ thuật cao.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="image-grid-section reveal">
+    <div class="art-divider" style="margin-bottom:36px"><div class="art-divider-line"></div><div class="art-divider-ornament"></div><div class="art-divider-line"></div></div>
+    <div class="image-grid" id="imageGrid">
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/3Dmodel_DreamHouse3.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/3Dmodel_DreamHouse2.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/3Dmodel_DreamHouse1.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/3Dmodel_DreamHouse4.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/DreamHouse_state.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/DreameHouse_wood_Base_color.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/DreameHouse_House1_Base_color.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/DreameHouse_House2_Base_color.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/DreameHouse_House3_Base_color.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/DreameHouse_House4_Base_color.png" alt=""></div>
+    </div>
+  </div>
+
+  <div class="back-bar">
+    <a href="index.html#portfolio" class="back-btn"><i class="bi bi-arrow-left"></i> <span data-i18n="back_btn">Quay Lại Portfolio</span></a>
+  </div>
+</main>
+
+<footer>
+  <p>© 2025 <span class="footer-name">Nguyễn Văn Hậu</span></p>
+  <p style="font-size:11px;color:rgba(154,143,128,.5)" data-i18n="footer_sub">Game Developer · 3D Artist · Đà Nẵng, Việt Nam</p>
+</footer>
+
+<script>
+(function(){
+  /* ── i18n DATA ── */
+  const i18n = {
+    vi: {
+      nav_home: 'Home', nav_about: 'About', nav_skills: 'Skills',
+      nav_cv: 'CV', nav_work: 'Work', nav_contact: 'Contact',
+      breadcrumb_home: 'Trang Chủ',
+      page_cat: '3D Model · Environment · Blender',
+      info_title: 'Thông Tin Dự Án',
+      info_genre: 'Thể Loại', info_team: 'Nhân Sự',
+      info_contrib: 'Đóng Góp', info_time: 'Thời Gian',
+      info_people: 'người', info_contrib_total: 'tổng sản phẩm',
+      info_asset_self: 'Tự thiết kế',
+      info_time_val: '1 tuần (Model + Handpainted)',
+      overview_label: 'Tổng Quan',
+      features_label: 'Tóm Tắt Dự Án',
+      desc_p1: '<strong>Dream House</strong> là một dự án 3D environment modeling tập trung vào việc xây dựng một ngôi nhà trong mơ với phong cách hand-painted ấm áp và đầy cá tính.',
+      desc_p2: 'Toàn bộ asset — từ kiến trúc chính đến các chi tiết ngoại thất như hàng rào, cây cối, cột đèn — đều được modeling và texture thủ công trong Blender, tạo nên một scene hoàn chỉnh và có chiều sâu nghệ thuật.',
+      desc_p3: 'Dự án rèn luyện kỹ năng environment art: tổ chức tỷ lệ không gian, ánh sáng môi trường và kể chuyện qua hình ảnh kiến trúc.',
+      feat1_title: 'Kiến Trúc Chi Tiết & Cân Bằng Tỷ Lệ',
+      feat1_desc: 'Ngôi nhà được thiết kế với tỷ lệ kiến trúc hài hòa, bao gồm nhiều chi tiết ngoại thất: mái ngói, cửa sổ, ban công, hiên nhà — tạo cảm giác không gian sống thực tế.',
+      feat2_title: 'Environment Dressing Hoàn Chỉnh',
+      feat2_desc: 'Scene không chỉ có nhà mà còn bao gồm prop bổ trợ: hàng rào gỗ, cây cối, đường lát đá, cột đèn — tạo nên một môi trường sống động và có chiều sâu câu chuyện.',
+      feat3_title: 'Hand-Painted Texture Nhiều Vật Liệu',
+      feat3_desc: 'Mỗi vật liệu (gỗ, đá, mái ngói, kim loại) được paint riêng biệt với kỹ thuật layer màu sắc phù hợp, tạo ra sự đa dạng bề mặt trong khi vẫn giữ tính thống nhất phong cách.',
+      feat4_title: 'Lighting & Atmosphere',
+      feat4_desc: 'Ánh sáng môi trường được thiết kế để tôn vinh phong cách hand-painted, sử dụng HDRI kết hợp area light để tạo bầu không khí ấm cúng và mang tính nghệ thuật cao.',
+      back_btn: 'Quay Lại Portfolio',
+      footer_sub: 'Game Developer · 3D Artist · Đà Nẵng, Việt Nam',
+    },
+    en: {
+      nav_home: 'Home', nav_about: 'About', nav_skills: 'Skills',
+      nav_cv: 'CV', nav_work: 'Work', nav_contact: 'Contact',
+      breadcrumb_home: 'Home',
+      page_cat: '3D Model · Environment · Blender',
+      info_title: 'Project Info',
+      info_genre: 'Category', info_team: 'Team',
+      info_contrib: 'Contribution', info_time: 'Duration',
+      info_people: 'person', info_contrib_total: 'of total product',
+      info_asset_self: 'Self-designed',
+      info_time_val: '1 week (Model + Handpainted)',
+      overview_label: 'Overview',
+      features_label: 'Project Summary',
+      desc_p1: '<strong>Dream House</strong> is a 3D environment modeling project focused on building a dream home with a warm and distinctive hand-painted style.',
+      desc_p2: 'All assets — from the main architecture to exterior details such as fences, trees, and lamp posts — were modeled and textured by hand in Blender, creating a complete scene with artistic depth.',
+      desc_p3: 'The project hones environment art skills: spatial scale composition, environmental lighting, and storytelling through architectural imagery.',
+      feat1_title: 'Detailed Architecture & Balanced Proportions',
+      feat1_desc: 'The house is designed with harmonious architectural proportions, featuring detailed exterior elements: roof tiles, windows, balconies, and porches — creating a realistic sense of living space.',
+      feat2_title: 'Complete Environment Dressing',
+      feat2_desc: 'The scene includes not just the house but also supporting props: wooden fences, trees, stone paths, lamp posts — creating a lively environment with narrative depth.',
+      feat3_title: 'Hand-Painted Multi-Material Textures',
+      feat3_desc: 'Each material (wood, stone, roof tiles, metal) is painted separately with appropriate color-layering techniques, creating surface variety while maintaining stylistic unity.',
+      feat4_title: 'Lighting & Atmosphere',
+      feat4_desc: 'Environmental lighting is designed to complement the hand-painted style, using HDRI combined with area lights to create a cozy and artistically elevated atmosphere.',
+      back_btn: 'Back to Portfolio',
+      footer_sub: 'Game Developer · 3D Artist · Da Nang, Vietnam',
+    },
+    ja: {
+      nav_home: 'ホーム', nav_about: '自己紹介', nav_skills: 'スキル',
+      nav_cv: '経歴', nav_work: '作品', nav_contact: 'お問合せ',
+      breadcrumb_home: 'ホーム',
+      page_cat: '3Dモデル · 環境 · Blender',
+      info_title: 'プロジェクト情報',
+      info_genre: 'カテゴリ', info_team: 'チーム',
+      info_contrib: '貢献度', info_time: '期間',
+      info_people: '人', info_contrib_total: '全体',
+      info_asset_self: '自己デザイン',
+      info_time_val: '1週間（モデリング + ハンドペイント）',
+      overview_label: '概要',
+      features_label: 'プロジェクト概要',
+      desc_p1: '<strong>Dream House</strong>は、温かくて個性的なハンドペイントスタイルで夢の家を構築することに焦点を当てた3D環境モデリングプロジェクトです。',
+      desc_p2: 'フェンス、木々、街灯などの外装ディテールを含むすべてのアセットは、Blenderで手作業でモデリングおよびテクスチャリングされ、芸術的な深みのある完成されたシーンを作り上げています。',
+      desc_p3: 'このプロジェクトは、空間スケールの構成、環境照明、建築イメージによるストーリーテリングなど、環境アートのスキルを磨くものです。',
+      feat1_title: '詳細な建築と均衡のとれた比率',
+      feat1_desc: '屋根瓦、窓、バルコニー、ポーチなど詳細な外装要素を備えた、調和のとれた建築比率でデザインされた住宅です。',
+      feat2_title: '完全な環境ドレッシング',
+      feat2_desc: 'シーンには家だけでなく、木製フェンス、木々、石畳、街灯などの補助プロップも含まれており、生き生きとした物語的な深みのある環境を作り出しています。',
+      feat3_title: 'マルチマテリアルのハンドペイントテクスチャ',
+      feat3_desc: '各素材（木材、石、屋根瓦、金属）は適切なカラーレイヤリング技法で個別にペイントされ、スタイルの統一性を保ちながら表面の多様性を生み出しています。',
+      feat4_title: 'ライティング & アトモスフィア',
+      feat4_desc: 'HDRIとエリアライトを組み合わせてハンドペイントスタイルを引き立てる環境照明を設計し、居心地よく芸術的な雰囲気を演出しています。',
+      back_btn: 'ポートフォリオに戻る',
+      footer_sub: 'ゲーム開発者 · 3Dアーティスト · ダナン、ベトナム',
+    }
+  };
+
+  /* ── APPLY LANGUAGE ── */
+  let currentLang = localStorage.getItem('nvh_lang') || 'vi';
+
+  function applyLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('nvh_lang', lang);
+    const t = i18n[lang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (t[key] !== undefined) el.innerHTML = t[key];
+    });
+    document.getElementById('lang-current-label').textContent = lang.toUpperCase();
+    document.querySelectorAll('.lang-opt').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    document.documentElement.lang = lang === 'ja' ? 'ja' : lang === 'en' ? 'en' : 'vi';
+  }
+
+  /* ── DROPDOWN TOGGLE ── */
+  const toggle = document.getElementById('lang-toggle');
+  const dropdown = document.getElementById('lang-dropdown');
+  toggle.addEventListener('click', e => { e.stopPropagation(); dropdown.classList.toggle('open'); });
+  document.addEventListener('click', () => dropdown.classList.remove('open'));
+  dropdown.addEventListener('click', e => e.stopPropagation());
+  document.querySelectorAll('.lang-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyLang(btn.dataset.lang);
+      dropdown.classList.remove('open');
+    });
+  });
+
+  applyLang(currentLang);
+
+  /* ── CANVAS BG ── */
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  class Particle {
+    constructor(){ this.reset(); }
+    reset(){ this.x=Math.random()*W; this.y=Math.random()*H; this.size=Math.random()*1.5+.3; this.speedX=(Math.random()-.5)*.3; this.speedY=-Math.random()*.5-.1; this.opacity=Math.random()*.4+.1; this.life=0; this.maxLife=Math.random()*300+200; }
+    update(){ this.x+=this.speedX; this.y+=this.speedY; this.life++; if(this.life>this.maxLife||this.y<0) this.reset(); }
+    draw(){ const f=this.life<30?this.life/30:this.life>this.maxLife-30?(this.maxLife-this.life)/30:1; ctx.globalAlpha=this.opacity*f; ctx.fillStyle='#c8973a'; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); }
+  }
+  function init(){ particles=[]; for(let i=0;i<60;i++){ const p=new Particle(); p.life=Math.floor(Math.random()*p.maxLife); particles.push(p); } }
+  function anim(){ ctx.clearRect(0,0,W,H); ctx.globalAlpha=.025; ctx.strokeStyle='#c8973a'; ctx.lineWidth=.5; for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();} for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();} particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(anim); }
+  resize(); init(); anim(); window.addEventListener('resize', resize);
+
+  /* ── CURSOR ── */
+  const cur = document.getElementById('cursor'), ring = document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+  (function ac(){ rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(ac); })();
+  document.querySelectorAll('a,button,.grid-img-wrap').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cur.style.width='16px';cur.style.height='16px';ring.style.width='56px';ring.style.height='56px';});
+    el.addEventListener('mouseleave',()=>{cur.style.width='8px';cur.style.height='8px';ring.style.width='36px';ring.style.height='36px';});
+  });
+
+  /* ── SLIDER ── */
+  const track = document.getElementById('sliderTrack');
+  const dotsWrap = document.getElementById('sliderDots');
+  const slides = track ? track.querySelectorAll('.slide') : [];
+  let cur2 = 0;
+  function goTo(i){ cur2=i; track.style.transform=`translateX(-${i*100}%)`; dotsWrap.querySelectorAll('.slider-dot').forEach((d,di)=>d.classList.toggle('active',di===i)); }
+  if(slides.length){
+    slides.forEach((_,i)=>{ const d=document.createElement('div'); d.className='slider-dot'+(i===0?' active':''); d.onclick=()=>goTo(i); dotsWrap.appendChild(d); });
+    document.getElementById('sliderPrev').onclick=()=>goTo((cur2-1+slides.length)%slides.length);
+    document.getElementById('sliderNext').onclick=()=>goTo((cur2+1)%slides.length);
+    setInterval(()=>goTo((cur2+1)%slides.length),5000);
+  }
+
+  /* ── SCROLL REVEAL ── */
+  const obs = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); }),{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  /* ── LIGHTBOX ── */
+  const lb=document.getElementById('lightbox'), lbImg=document.getElementById('lb-img');
+  const gridImgs = Array.from(document.querySelectorAll('#imageGrid img'));
+  let lbIdx=0;
+  function openLb(i){ lbIdx=i; lbImg.src=gridImgs[i].src; lb.classList.add('open'); }
+  gridImgs.forEach((img,i)=>img.addEventListener('click',()=>openLb(i)));
+  document.getElementById('lb-close').onclick=()=>lb.classList.remove('open');
+  document.getElementById('lb-prev').onclick=()=>openLb((lbIdx-1+gridImgs.length)%gridImgs.length);
+  document.getElementById('lb-next').onclick=()=>openLb((lbIdx+1)%gridImgs.length);
+  lb.addEventListener('click',e=>{ if(e.target===lb) lb.classList.remove('open'); });
+  document.addEventListener('keydown',e=>{
+    if(!lb.classList.contains('open')) return;
+    if(e.key==='Escape') lb.classList.remove('open');
+    if(e.key==='ArrowLeft') openLb((lbIdx-1+gridImgs.length)%gridImgs.length);
+    if(e.key==='ArrowRight') openLb((lbIdx+1)%gridImgs.length);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nguyễn Văn Hậu — Game Developer & 3D Artist</title>
+  <link rel="icon" type="image/png" href="assets/img/code.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Inter:wght@300;400;500&family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0a0a0f;
+      --ink2: #12121a;
+      --ink3: #1a1a26;
+      --gold: #c8973a;
+      --gold2: #e8b85a;
+      --jade: #3a8c7a;
+      --jade2: #5cb89e;
+      --crimson: #8c2a2a;
+      --crimson2: #c43c3c;
+      --mist: rgba(200,151,58,0.06);
+      --text: #e8e0d0;
+      --text2: #9a8f80;
+      --glow: 0 0 40px rgba(200,151,58,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── CANVAS BG ── */
+    #bg-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; opacity: 0.5;
+    }
+
+    /* ── SIDEBAR NAV ── */
+    #nav {
+      position: fixed; left: 0; top: 0; height: 100vh; width: 72px;
+      background: rgba(10,10,15,0.9);
+      border-right: 1px solid rgba(200,151,58,0.12);
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 30px; z-index: 100;
+      padding: 24px 0;
+    }
+
+    .nav-logo {
+      position: absolute; top: 28px;
+      font-family: 'Cinzel', serif; font-size: 11px; font-weight: 900;
+      color: var(--gold); letter-spacing: 3px;
+      writing-mode: vertical-rl; text-orientation: mixed;
+    }
+
+    .nav-link {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: var(--text2); text-decoration: none;
+      font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+      transition: all 0.4s ease; position: relative;
+    }
+
+    .nav-link i { font-size: 18px; transition: all 0.4s ease; }
+
+    .nav-link::after {
+      content: ''; position: absolute; left: -1px; width: 2px; height: 0;
+      background: var(--gold); transition: height 0.4s ease;
+      transform: translateX(-50%);
+    }
+
+    .nav-link:hover, .nav-link.active { color: var(--gold); }
+    .nav-link:hover::after, .nav-link.active::after { height: 100%; }
+
+    .nav-socials {
+      position: absolute; bottom: 28px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .nav-socials a { color: var(--text2); font-size: 16px; transition: color 0.3s; }
+    .nav-socials a:hover { color: var(--gold); }
+
+    /* ── LANGUAGE SWITCHER ── */
+    .lang-switcher {
+      position: absolute;
+      bottom: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .lang-toggle {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text2); transition: color 0.3s ease;
+      padding: 6px;
+    }
+
+    .lang-toggle:hover { color: var(--gold); }
+    .lang-toggle i { font-size: 18px; }
+
+    .lang-current {
+      font-size: 9px; letter-spacing: 2px;
+      font-family: 'Inter', sans-serif; font-weight: 500;
+    }
+
+    .lang-dropdown {
+      position: absolute;
+      left: 64px;
+      bottom: 0;
+      background: rgba(10,10,15,0.97);
+      border: 1px solid rgba(200,151,58,0.25);
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column;
+      min-width: 130px;
+      opacity: 0; pointer-events: none;
+      transform: translateX(-8px);
+      transition: all 0.3s ease;
+      z-index: 200;
+    }
+
+    .lang-dropdown.open {
+      opacity: 1; pointer-events: all;
+      transform: translateX(0);
+    }
+
+    .lang-opt {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text2); font-size: 12px; letter-spacing: 1px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(200,151,58,0.08);
+      white-space: nowrap;
+    }
+
+    .lang-opt:last-child { border-bottom: none; }
+    .lang-opt:hover { color: var(--gold); background: rgba(200,151,58,0.06); }
+    .lang-opt.active { color: var(--gold); }
+
+    .lang-opt.active::after {
+      content: '◆';
+      font-size: 6px; margin-left: auto;
+      color: var(--gold);
+    }
+
+    .lang-flag { font-size: 16px; }
+
+    /* ── MAIN CONTENT ── */
+    main { margin-left: 72px; position: relative; z-index: 1; }
+
+    section { min-height: 100vh; padding: 120px 80px; position: relative; }
+
+    /* ── SECTION HEADINGS ── */
+    .section-label {
+      font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 6px;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::before {
+      content: ''; display: block; width: 40px; height: 1px; background: var(--gold);
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif; font-size: clamp(36px, 5vw, 64px);
+      font-weight: 900; line-height: 1; color: #fff;
+      margin-bottom: 60px;
+    }
+
+    /* ── HERO ── */
+    #hero {
+      display: flex; flex-direction: column; justify-content: center;
+      min-height: 100vh; padding: 80px;
+      overflow: hidden;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 8px;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 24px; opacity: 0;
+      animation: fadeUp 1s 0.5s forwards;
+    }
+
+    .hero-name {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(52px, 9vw, 120px);
+      font-weight: 900; line-height: 0.9;
+      color: #fff; letter-spacing: -2px;
+      opacity: 0; animation: fadeUp 1.2s 0.7s forwards;
+    }
+
+    .hero-name span {
+      display: block; color: transparent;
+      -webkit-text-stroke: 1.5px var(--gold);
+    }
+
+    .hero-tagline {
+      margin-top: 32px; font-size: 16px; color: var(--text2);
+      font-weight: 300; max-width: 560px; line-height: 1.8;
+      opacity: 0; animation: fadeUp 1s 1s forwards;
+    }
+
+    .hero-tagline em { color: var(--gold2); font-style: normal; }
+
+    .hero-cta {
+      display: flex; gap: 20px; margin-top: 48px; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 1s 1.3s forwards;
+    }
+
+    .btn-primary-art {
+      padding: 14px 36px; background: var(--gold);
+      color: var(--ink); font-size: 12px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase; text-decoration: none;
+      border: none; cursor: pointer; position: relative; overflow: hidden;
+      transition: all 0.4s ease;
+    }
+
+    .btn-primary-art::before {
+      content: ''; position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-primary-art:hover::before { left: 100%; }
+    .btn-primary-art:hover { background: var(--gold2); transform: translateY(-2px); }
+
+    .btn-outline-art {
+      padding: 14px 36px; background: transparent;
+      color: var(--text); font-size: 12px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase; text-decoration: none;
+      border: 1px solid rgba(200,151,58,0.4); cursor: pointer;
+      transition: all 0.4s ease;
+    }
+
+    .btn-outline-art:hover {
+      border-color: var(--gold); color: var(--gold);
+      box-shadow: inset 0 0 20px rgba(200,151,58,0.1);
+    }
+
+    .hero-visual-line {
+      position: absolute; right: 80px; top: 50%;
+      transform: translateY(-50%);
+      width: 1px; height: 0; background: var(--gold);
+      animation: growLine 1.5s 1.5s forwards;
+    }
+
+    .hero-scroll {
+      position: absolute; bottom: 40px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: var(--text2); font-size: 9px; letter-spacing: 4px;
+      text-transform: uppercase; opacity: 0;
+      animation: fadeUp 1s 2s forwards;
+    }
+
+    .scroll-line {
+      width: 1px; height: 60px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: scrollPulse 2s 2s infinite;
+    }
+
+    /* ── ABOUT ── */
+    #about { background: var(--ink2); }
+
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start;
+    }
+
+    .about-text p {
+      font-size: 16px; line-height: 2; color: var(--text2); margin-bottom: 24px;
+    }
+
+    .about-text p strong { color: var(--gold); font-weight: 500; }
+
+    .about-details {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px;
+    }
+
+    .detail-card {
+      padding: 20px; border: 1px solid rgba(200,151,58,0.15);
+      background: rgba(200,151,58,0.03);
+      transition: all 0.4s ease; position: relative; overflow: hidden;
+    }
+
+    .detail-card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 2px; height: 0; background: var(--gold);
+      transition: height 0.4s ease;
+    }
+
+    .detail-card:hover::before { height: 100%; }
+    .detail-card:hover { border-color: rgba(200,151,58,0.4); }
+
+    .detail-card-label {
+      font-size: 9px; letter-spacing: 3px; color: var(--gold);
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .detail-card-value { font-size: 14px; color: var(--text); }
+
+    .profile-frame {
+      position: relative; aspect-ratio: 3/2; overflow: hidden;
+      max-width: 660px;
+    }
+
+    .profile-frame img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: sepia(20%) contrast(1.1);
+      transition: filter 0.6s ease;
+    }
+
+    .profile-frame:hover img { filter: sepia(0%) contrast(1.2); }
+
+    .profile-frame::before {
+      content: ''; position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(to bottom, transparent 50%, rgba(10,10,15,0.8));
+    }
+
+    .profile-frame::after {
+      content: ''; position: absolute; inset: 12px;
+      border: 1px solid rgba(200,151,58,0.3); z-index: 2;
+      transition: all 0.4s ease;
+    }
+
+    .profile-frame:hover::after { inset: 8px; border-color: rgba(200,151,58,0.6); }
+
+    .profile-name-overlay {
+      position: absolute; bottom: 24px; left: 24px; z-index: 3;
+    }
+
+    .profile-name-overlay h3 {
+      font-family: 'Cinzel', serif; font-size: 20px; color: #fff; font-weight: 600;
+    }
+
+    .profile-name-overlay span {
+      font-size: 11px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase;
+    }
+
+    /* ── SKILLS ── */
+    #skills { background: var(--ink); }
+
+    .skills-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+    }
+
+    .skill-cell {
+      padding: 40px 32px; background: var(--ink2);
+      border: 1px solid rgba(200,151,58,0.08);
+      position: relative; overflow: hidden;
+      transition: all 0.5s ease; cursor: default;
+    }
+
+    .skill-cell::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(200,151,58,0.08) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+
+    .skill-cell:hover { border-color: rgba(200,151,58,0.3); z-index: 1; }
+    .skill-cell:hover::after { opacity: 1; }
+
+    .skill-cell-icon {
+      font-size: 28px; color: var(--gold); margin-bottom: 20px;
+      display: block;
+      animation: iconFloat 4s ease-in-out infinite;
+    }
+
+    .skill-cell:nth-child(2) .skill-cell-icon { animation-delay: 0.5s; }
+    .skill-cell:nth-child(3) .skill-cell-icon { animation-delay: 1s; }
+    .skill-cell:nth-child(4) .skill-cell-icon { animation-delay: 1.5s; }
+    .skill-cell:nth-child(5) .skill-cell-icon { animation-delay: 2s; }
+    .skill-cell:nth-child(6) .skill-cell-icon { animation-delay: 2.5s; }
+
+    .skill-cell h4 {
+      font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600;
+      color: #fff; margin-bottom: 10px; letter-spacing: 1px;
+    }
+
+    .skill-cell p { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+    .skill-tags {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+    }
+
+    .skill-tag {
+      font-size: 10px; letter-spacing: 2px; padding: 4px 12px;
+      border: 1px solid rgba(200,151,58,0.25); color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    /* ── EXPERIENCE / TIMELINE ── */
+    #experience { background: var(--ink2); }
+
+    .timeline { position: relative; padding-left: 40px; }
+
+    .timeline::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+    }
+
+    .timeline-item {
+      position: relative; margin-bottom: 64px; opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .timeline-item.visible { opacity: 1; transform: translateX(0); }
+
+    .timeline-dot {
+      position: absolute; left: -44px; top: 6px;
+      width: 9px; height: 9px; background: var(--gold);
+      transform: rotate(45deg);
+    }
+
+    .timeline-dot::before {
+      content: ''; position: absolute; inset: -4px;
+      border: 1px solid rgba(200,151,58,0.3);
+    }
+
+    .timeline-period {
+      font-size: 10px; letter-spacing: 3px; color: var(--gold);
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+
+    .timeline-title {
+      font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600;
+      color: #fff; margin-bottom: 4px;
+    }
+
+    .timeline-company {
+      font-size: 13px; color: var(--jade2); margin-bottom: 16px; letter-spacing: 1px;
+    }
+
+    .timeline-list { list-style: none; }
+
+    .timeline-list li {
+      font-size: 14px; color: var(--text2); line-height: 1.8;
+      padding-left: 20px; position: relative; margin-bottom: 4px;
+    }
+
+    .timeline-list li::before {
+      content: '◆'; position: absolute; left: 0;
+      font-size: 6px; color: var(--gold); top: 7px;
+    }
+
+    .achievement-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 24px; border: 1px solid var(--gold);
+      background: rgba(200,151,58,0.05); margin-top: 16px;
+    }
+
+    .achievement-badge i { font-size: 18px; color: var(--gold); }
+
+    .achievement-badge span { font-size: 13px; color: var(--text); letter-spacing: 1px; }
+
+    /* ── PORTFOLIO ── */
+    #portfolio { background: var(--ink); overflow: hidden; }
+
+    .portfolio-filters {
+      display: flex; gap: 4px; margin-bottom: 48px; flex-wrap: wrap;
+    }
+
+    .pf-btn {
+      padding: 8px 20px; background: transparent;
+      color: var(--text2); font-size: 10px; letter-spacing: 3px;
+      text-transform: uppercase; border: 1px solid rgba(200,151,58,0.2);
+      cursor: pointer; transition: all 0.3s ease;
+    }
+
+    .pf-btn:hover, .pf-btn.active {
+      color: var(--ink); background: var(--gold); border-color: var(--gold);
+    }
+
+    .portfolio-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+    }
+
+    .portfolio-card {
+      position: relative; aspect-ratio: 4/3; overflow: hidden;
+      background: var(--ink2); cursor: pointer;
+    }
+
+    .portfolio-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      filter: brightness(0.7) saturate(0.8);
+    }
+
+    .portfolio-card:hover img {
+      transform: scale(1.1);
+      filter: brightness(0.5) saturate(0.5);
+    }
+
+    .portfolio-card-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 28px;
+      background: linear-gradient(to top, rgba(10,10,15,0.95) 0%, transparent 60%);
+    }
+
+    .portfolio-card-hover {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.4s ease;
+    }
+
+    .portfolio-card:hover .portfolio-card-hover { opacity: 1; }
+
+    .portfolio-card-hover a {
+      width: 52px; height: 52px;
+      border: 1px solid var(--gold); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; text-decoration: none;
+      transform: scale(0.7) rotate(-45deg);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .portfolio-card:hover .portfolio-card-hover a {
+      transform: scale(1) rotate(0deg);
+    }
+
+    .portfolio-card-hover a:hover { background: var(--gold); color: var(--ink); }
+
+    .portfolio-card-cat {
+      font-size: 9px; letter-spacing: 3px; color: var(--gold);
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+
+    .portfolio-card-name {
+      font-family: 'Cinzel', serif; font-size: 15px; color: #fff; font-weight: 600;
+    }
+
+    /* ── REVIEWS ── */
+    #reviews { background: var(--ink); }
+
+    .review-card {
+      position: relative;
+      padding: 36px 32px 28px;
+      border: 1px solid rgba(200,151,58,0.15);
+      background: var(--ink2);
+      display: flex; flex-direction: column; gap: 20px;
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+
+    .review-card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 2px; height: 0; background: var(--gold);
+      transition: height 0.4s ease;
+    }
+
+    .review-card:hover::before { height: 100%; }
+    .review-card:hover { border-color: rgba(200,151,58,0.35); transform: translateY(-4px); }
+
+    .review-card--featured {
+      border-color: rgba(200,151,58,0.35);
+      background: linear-gradient(135deg, rgba(200,151,58,0.06) 0%, var(--ink2) 60%);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 30px rgba(200,151,58,0.08);
+    }
+
+    .review-card--featured::before { height: 100%; }
+
+    .review-quote-icon {
+      font-family: 'Cinzel', serif;
+      font-size: 48px; line-height: 1;
+      color: rgba(200,151,58,0.25);
+      font-weight: 900;
+      position: absolute; top: 16px; left: 24px;
+    }
+
+    .review-body { padding-top: 24px; }
+
+    .review-body p {
+      font-size: 14px; color: var(--text2);
+      line-height: 1.85; margin-bottom: 14px;
+    }
+
+    .review-body p:last-child { margin-bottom: 0; }
+    .review-body strong { color: var(--text); font-weight: 500; }
+
+    .review-author {
+      display: flex; gap: 14px; align-items: center;
+      padding-top: 20px;
+      border-top: 1px solid rgba(200,151,58,0.1);
+      margin-top: auto;
+    }
+
+    .review-author img {
+      width: 48px; height: 48px; border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(200,151,58,0.3);
+      filter: grayscale(20%);
+    }
+
+    .review-author-name {
+      font-family: 'Cinzel', serif;
+      font-size: 13px; font-weight: 600; color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .review-author-role {
+      font-size: 11px; color: var(--gold);
+      letter-spacing: 0.5px; line-height: 1.5;
+    }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--ink2); }
+
+    .contact-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start;
+    }
+
+    .contact-intro {
+      font-size: 16px; color: var(--text2); line-height: 2; margin-bottom: 48px;
+    }
+
+    .contact-items { display: flex; flex-direction: column; gap: 28px; }
+
+    .contact-item {
+      display: flex; gap: 20px; align-items: flex-start;
+      padding-bottom: 28px; border-bottom: 1px solid rgba(200,151,58,0.1);
+    }
+
+    .contact-item-icon {
+      width: 44px; height: 44px; border: 1px solid rgba(200,151,58,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 18px; flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .contact-item:hover .contact-item-icon { background: var(--gold); color: var(--ink); }
+
+    .contact-item-label {
+      font-size: 10px; letter-spacing: 3px; color: var(--gold);
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .contact-item-value { font-size: 15px; color: var(--text); }
+
+    .contact-right {
+      padding: 48px; border: 1px solid rgba(200,151,58,0.15);
+      background: rgba(200,151,58,0.02); position: relative;
+    }
+
+    .contact-right::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 40px; height: 40px;
+      border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
+    }
+
+    .contact-right::after {
+      content: ''; position: absolute; bottom: 0; right: 0;
+      width: 40px; height: 40px;
+      border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold);
+    }
+
+    .contact-quote {
+      font-family: 'Cinzel', serif; font-size: 22px; font-weight: 400;
+      color: #fff; line-height: 1.6; margin-bottom: 32px;
+    }
+
+    .contact-quote em { color: var(--gold); font-style: normal; display: block; margin-top: 8px; }
+
+    .social-row { display: flex; gap: 16px; flex-wrap: wrap; }
+
+    .social-btn {
+      padding: 10px 20px; border: 1px solid rgba(200,151,58,0.3);
+      color: var(--text2); font-size: 13px; text-decoration: none;
+      display: flex; align-items: center; gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .social-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      border-top: 1px solid rgba(200,151,58,0.1);
+      padding: 32px 80px 32px 152px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    footer p { font-size: 12px; color: var(--text2); letter-spacing: 2px; }
+
+    footer .footer-name {
+      font-family: 'Cinzel', serif; font-size: 14px;
+      color: var(--gold); letter-spacing: 4px;
+    }
+
+    /* ── CURSOR ── */
+    .cursor {
+      width: 8px; height: 8px; background: var(--gold);
+      border-radius: 50%; position: fixed; pointer-events: none;
+      z-index: 9999; transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s, background 0.3s;
+      mix-blend-mode: difference;
+    }
+
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(200,151,58,0.5);
+      border-radius: 50%; position: fixed; pointer-events: none;
+      z-index: 9998; transform: translate(-50%, -50%);
+      transition: all 0.15s ease;
+    }
+
+    /* ── EXPERIENCE LAYOUT ── */
+    .exp-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) fit-content(540px);
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* ── CV IMAGE BLOCK ── */
+    .cv-image-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: min(100%, 540px);
+      justify-self: center;
+      position: sticky;
+      top: 88px;
+    }
+
+    .cv-frame {
+      position: relative;
+      width: 100%;
+      margin: 0 auto;
+      border: 1px solid rgba(200,151,58,0.2);
+      background: var(--ink2);
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    }
+
+    /* Corner brackets */
+    .cv-frame::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 36px; height: 36px;
+      border-top: 2px solid var(--gold);
+      border-left: 2px solid var(--gold);
+      z-index: 3;
+    }
+
+    .cv-frame::after {
+      content: '';
+      position: absolute; bottom: 0; right: 0;
+      width: 36px; height: 36px;
+      border-bottom: 2px solid var(--gold);
+      border-right: 2px solid var(--gold);
+      z-index: 3;
+    }
+
+    .cv-frame img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      filter: sepia(15%) contrast(1.05);
+      transition: filter 0.6s ease, transform 0.6s ease;
+    }
+
+    .cv-frame:hover img {
+      filter: sepia(0%) contrast(1.1);
+      transform: scale(1.02);
+    }
+
+    /* Overlay label at bottom of CV image */
+    .cv-frame-label {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px 20px 16px;
+      background: linear-gradient(to top, rgba(10,10,15,0.95) 0%, transparent 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 2;
+    }
+
+    .cv-frame-label-top {
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      letter-spacing: 5px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .cv-frame-label-name {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .cv-frame-label-sub {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text2);
+    }
+
+    .cv-dl-btn {
+      font-size: 11px !important;
+      padding: 10px 28px !important;
+      letter-spacing: 2px !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .exp-layout {
+        grid-template-columns: 1fr;
+      }
+      .cv-image-block {
+        position: static;
+        max-width: 360px;
+        width: 100%;
+        align-items: center;
+        margin: 0 auto;
+      }
+    }
+
+    @media (min-width: 1101px) and (max-width: 1399px) {
+      .exp-layout {
+        grid-template-columns: minmax(0, 1fr) fit-content(440px);
+        gap: 36px;
+      }
+
+      .cv-image-block {
+        width: min(100%, 440px);
+      }
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes growLine {
+      from { height: 0; }
+      to   { height: 60%; }
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 1; transform: scaleY(1); }
+      50%       { opacity: 0.3; transform: scaleY(0.5); }
+    }
+
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-6px); }
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── ORNAMENT ── */
+    .lotus-ornament {
+      position: absolute; right: 80px; top: 120px; opacity: 0.05;
+      font-size: 200px; color: var(--gold); pointer-events: none;
+      animation: iconFloat 8s ease-in-out infinite;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 992px) {
+      section { padding: 80px 40px; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+      .skills-grid { grid-template-columns: 1fr 1fr; }
+      .portfolio-grid { grid-template-columns: 1fr 1fr; }
+      .reviews-row3, .reviews-row2 { grid-template-columns: 1fr !important; }
+      .review-card--featured { transform: translateY(0); }
+      footer { padding-left: 112px; }
+    }
+
+    @media (max-width: 640px) {
+      main { margin-left: 0; padding-top: 72px; }
+      #nav {
+        height: 72px; width: 100%; top: 0;
+        flex-direction: row; justify-content: center;
+        border-right: none; border-bottom: 1px solid rgba(200,151,58,0.12);
+      }
+      .nav-logo, .nav-socials { display: none; }
+      .nav-link span { display: none; }
+      .lang-switcher { position: static; bottom: auto; }
+      .lang-dropdown { left: 50%; bottom: 52px; transform: translateX(-50%) translateY(4px); }
+      .lang-dropdown.open { transform: translateX(-50%) translateY(0); }
+      section { padding: 60px 24px; }
+      .skills-grid, .portfolio-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 12px; padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ── SIDEBAR NAV ── -->
+<nav id="nav">
+  <span class="nav-logo">NVH</span>
+
+  <a href="#hero"       class="nav-link active" data-section="hero">
+    <i class="bi bi-house"></i><span>Home</span>
+  </a>
+  <a href="#about"      class="nav-link" data-section="about">
+    <i class="bi bi-person"></i><span>About</span>
+  </a>
+  <a href="#skills"     class="nav-link" data-section="skills">
+    <i class="bi bi-cpu"></i><span>Skills</span>
+  </a>
+  <a href="#experience" class="nav-link" data-section="experience">
+    <i class="bi bi-briefcase"></i><span>CV</span>
+  </a>
+  <a href="#portfolio"  class="nav-link" data-section="portfolio">
+    <i class="bi bi-grid"></i><span>Work</span>
+  </a>
+  <a href="#reviews"    class="nav-link" data-section="reviews">
+    <i class="bi bi-chat-quote"></i><span>Review</span>
+  </a>
+  <a href="#contact"    class="nav-link" data-section="contact">
+    <i class="bi bi-envelope"></i><span>Contact</span>
+  </a>
+
+  <!-- Language Switcher -->
+  <div class="lang-switcher" id="lang-switcher">
+    <button class="lang-toggle" id="lang-toggle" title="Language">
+      <i class="bi bi-translate"></i>
+      <span class="lang-current">VI</span>
+    </button>
+    <div class="lang-dropdown" id="lang-dropdown">
+      <button class="lang-opt active" data-lang="vi">
+        <span class="lang-flag">🇻🇳</span><span>Việt</span>
+      </button>
+      <button class="lang-opt" data-lang="en">
+        <span class="lang-flag">🇬🇧</span><span>English</span>
+      </button>
+      <button class="lang-opt" data-lang="ja">
+        <span class="lang-flag">🇯🇵</span><span>日本語</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav-socials">
+    <a href="https://www.facebook.com/22nguyenvanhau" target="_blank"><i class="bi bi-facebook"></i></a>
+    <a href="https://github.com/Ga-Mo221"             target="_blank"><i class="bi bi-github"></i></a>
+    <a href="https://www.linkedin.com/in/hậu-nguyễn-b97a9b3bb/" target="_blank"><i class="bi bi-linkedin"></i></a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ── HERO ── -->
+  <section id="hero">
+    <div class="lotus-ornament">☸</div>
+    <div class="hero-eyebrow" id="hero-eyebrow">Unity Game Developer · 3D Artist · Vietnamese Myth</div>
+    <h1 class="hero-name">
+      Nguyễn
+      <span>Văn Hậu</span>
+    </h1>
+    <p class="hero-tagline" id="hero-tagline">
+      Tôi <em id="typed-text"></em> —<br>
+      <span id="hero-tagline-line2" style="display:block; margin-top:8px;">— nơi huyền thoại Việt sống dậy trong từng frame animation và từng dòng code.</span>
+    </p>
+    <div class="hero-cta">
+      <a href="#portfolio" class="btn-primary-art" id="hero-btn1">Xem Tác Phẩm</a>
+      <a href="#contact"   class="btn-outline-art" id="hero-btn2">Liên Hệ Ngay</a>
+    </div>
+    <div class="hero-visual-line"></div>
+    <div class="hero-scroll" id="hero-scroll">
+      <div class="scroll-line"></div>
+      Cuộn xuống
+    </div>
+  </section>
+
+  <!-- ── ABOUT ── -->
+  <section id="about">
+    <div class="section-label" id="about-label">Về Tôi</div>
+    <h2 class="section-title reveal" id="about-title">Người vẽ nên<br>câu chuyện</h2>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p id="about-p1">Với tôi, làm game không chỉ là lập trình hay thiết kế hình ảnh — mà là quá trình <strong>thổi sự sống vào một thế giới số</strong>. Tôi theo đuổi việc tạo ra gameplay có ý nghĩa, nơi người chơi thật sự cảm nhận được hành trình mà họ đang trải qua.</p>
+        <p id="about-p2">Là một <strong>Unity Game Developer</strong> và <strong>3D Artist</strong>, tôi kết hợp tư duy kỹ thuật với cảm quan nghệ thuật. Dự án nổi bật nhất của tôi — <strong>Sơn Thủy Truyền Kỳ</strong> — lấy cảm hứng từ thần thoại Việt Nam, đạt giải Á Quân V-UNIQUE PROJECT AWARD 2025.</p>
+        <div class="about-details">
+          <div class="detail-card">
+            <div class="detail-card-label" id="detail-major-label">Chuyên Ngành</div>
+            <div class="detail-card-value" id="detail-major-val">Unity 2D/3D · C# · Blender</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-card-label" id="detail-lang-label">Ngôn Ngữ</div>
+            <div class="detail-card-value" id="detail-lang-val">Tiếng Việt · Tiếng Nhật (N3)</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-card-label" id="detail-edu-label">Học Vấn</div>
+            <div class="detail-card-value" id="detail-edu-val">VTC Academy — Game Dev</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-card-label" id="detail-contact-label">Liên Lạc</div>
+            <div class="detail-card-value" id="detail-contact-val">namhau221@gmail.com</div>
+          </div>
+        </div>
+      </div>
+      <div class="profile-frame reveal" style="transition-delay:0.2s;">
+        <img src="assets/img/profile/NguyenVanHau_2.JPG" alt="Nguyễn Văn Hậu">
+        <div class="profile-name-overlay">
+          <h3>Nguyễn Văn Hậu</h3>
+          <span id="profile-title">Game Developer</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SKILLS ── -->
+  <section id="skills">
+    <div class="section-label" id="skills-label">Kỹ Năng</div>
+    <h2 class="section-title reveal" id="skills-title">Vũ khí<br>của tôi</h2>
+    <div class="skills-grid">
+      <div class="skill-cell reveal">
+        <i class="bi bi-joystick skill-cell-icon"></i>
+        <h4 id="skill1-title">Unity Engine</h4>
+        <p  id="skill1-desc">Phát triển gameplay 2D/3D, hệ thống animation, UI và quản lý logic game.</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Unity 2D</span>
+          <span class="skill-tag">Unity 3D</span>
+          <span class="skill-tag">Physics</span>
+        </div>
+      </div>
+      <div class="skill-cell reveal" style="transition-delay:0.1s">
+        <i class="bi bi-code-slash skill-cell-icon"></i>
+        <h4 id="skill2-title">C# Programming</h4>
+        <p  id="skill2-desc">Lập trình gameplay, State Machine, AI pathfinding và tối ưu hiệu năng.</p>
+        <div class="skill-tags">
+          <span class="skill-tag">C#</span>
+          <span class="skill-tag">C/C++</span>
+          <span class="skill-tag">OOP</span>
+        </div>
+      </div>
+      <div class="skill-cell reveal" style="transition-delay:0.2s">
+        <i class="bi bi-layers skill-cell-icon"></i>
+        <h4 id="skill3-title">Game Systems</h4>
+        <p  id="skill3-desc">Save/Load, Inventory, Settings Manager, A* Pathfinding, Enemy AI.</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Architecture</span>
+          <span class="skill-tag">A* AI</span>
+        </div>
+      </div>
+      <div class="skill-cell reveal" style="transition-delay:0.3s">
+        <i class="bi bi-box skill-cell-icon"></i>
+        <h4 id="skill4-title">3D Modeling</h4>
+        <p  id="skill4-desc">Tạo và tối ưu asset 3D game-ready trên Blender, tích hợp vào Unity.</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Blender</span>
+          <span class="skill-tag">Low-poly</span>
+        </div>
+      </div>
+      <div class="skill-cell reveal" style="transition-delay:0.4s">
+        <i class="bi bi-palette skill-cell-icon"></i>
+        <h4 id="skill5-title">Handpainted Texture</h4>
+        <p  id="skill5-desc">Tạo texture hand-painted với Substance Painter, phong cách c�� điển Việt.</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Substance</span>
+          <span class="skill-tag">Photoshop</span>
+        </div>
+      </div>
+      <div class="skill-cell reveal" style="transition-delay:0.5s">
+        <i class="bi bi-person-bounding-box skill-cell-icon"></i>
+        <h4 id="skill6-title">Rigging & Animation</h4>
+        <p  id="skill6-desc">Rigging, animation Blender, Spine Pro và Animator Controller trong Unity.</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Spine Pro</span>
+          <span class="skill-tag">Blender Rig</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── EXPERIENCE ── -->
+  <section id="experience">
+
+    <div class="art-divider">
+      <div class="art-divider-line"></div>
+      <div class="art-divider-ornament"></div>
+      <div class="art-divider-line"></div>
+    </div>
+
+    <div class="section-label">
+      <span id="exp-label">Kinh Nghiệm</span>
+    </div>
+    <h2 class="section-title reveal" id="exp-title">Hành trình<br>sáng tạo</h2>
+
+    <!-- TWO-COLUMN LAYOUT: Timeline + CV Image -->
+    <div class="exp-layout">
+
+      <!-- TIMELINE (left) -->
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-period" id="exp1-period">6/2025 – 11/2025</div>
+          <div class="timeline-title" id="exp1-title">Game Developer — Team Project</div>
+          <div class="timeline-company" id="exp1-company">V-UNIQUE PROJECT AWARD 2025 · Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn</div>
+          <ul class="timeline-list">
+            <li id="exp1-li1">Thiết kế State Machine cho từng class nhân vật và hệ thống Animator đa trạng thái</li>
+            <li id="exp1-li2">Tích hợp A* Pathfinding, xây dựng AI hành vi cho Enemy</li>
+            <li id="exp1-li3">Sử dụng Spine Pro xây dựng animation nhân vật 2D</li>
+            <li id="exp1-li4">Áp dụng thuật toán nội suy để làm mượt chuyển động</li>
+            <li id="exp1-li5">Quản lý nhóm và phối hợp quy trình Planning → Production → Testing</li>
+          </ul>
+          <div class="achievement-badge">
+            <i class="bi bi-trophy"></i>
+            <span id="exp1-badge">🥈 Á Quân V-UNIQUE PROJECT AWARD 2025</span>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-period" id="exp2-period">6/2025 – 11/2025</div>
+          <div class="timeline-title" id="exp2-title">Unity Game Dev Foundation</div>
+          <div class="timeline-company" id="exp2-company">Giai đoạn Học tập & Phát triển Cá nhân</div>
+          <ul class="timeline-list">
+            <li id="exp2-li1">Phát triển nhiều dự án game 2D với Unity và C#</li>
+            <li id="exp2-li2">Xây dựng gameplay system, animation controller và UI tương tác</li>
+            <li id="exp2-li3">Thiết kế hệ thống Save/Load, Inventory và Settings Manager</li>
+          </ul>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-period" id="exp3-period">1/2026</div>
+          <div class="timeline-title" id="exp3-title">3D Modeling & Animation Training</div>
+          <div class="timeline-company" id="exp3-company">Cộng đồng "Động Làm Game" của Chương Võ</div>
+          <ul class="timeline-list">
+            <li id="exp3-li1">Modeling, animation nhân vật và môi trường game 3D</li>
+            <li id="exp3-li2">Tối ưu topology và polygon cho hiệu năng tốt</li>
+            <li id="exp3-li3">Phát triển kỹ năng hand-painted texture và chuyển động nhân vật</li>
+          </ul>
+        </div>
+
+      </div><!-- /timeline -->
+
+      <!-- CV IMAGE (right) -->
+      <div class="cv-image-block reveal">
+        <div class="cv-frame">
+          <img src="assets/img/profile/NguyenVanHau_3.JPG" alt="CV – Nguyễn Văn Hậu">
+          <div class="cv-frame-label">
+            <span class="cv-frame-label-top">CURRICULUM VITAE</span>
+            <span class="cv-frame-label-name">Nguyễn Văn Hậu</span>
+            <span class="cv-frame-label-sub">Game Developer · 3D Artist</span>
+          </div>
+        </div>
+        <!-- <a href="assets/img/profile/NguyenVanHau_3.JPG" download class="btn-outline-art cv-dl-btn" style="margin-top:24px;display:inline-flex;align-items:center;gap:10px;">
+          <i class="bi bi-download"></i> <span id="cv-download-label">Tải CV</span>
+        </a> -->
+      </div>
+
+    </div><!-- /exp-layout -->
+
+  </section>
+
+  <!-- ── PORTFOLIO ── -->
+  <section id="portfolio">
+    <div class="section-label" id="port-label">Tác Phẩm</div>
+    <h2 class="section-title reveal" id="port-title">Những thế giới<br>tôi đã tạo</h2>
+    <div class="portfolio-filters reveal">
+      <button class="pf-btn active" data-filter="*"       id="pf-all">Tất Cả</button>
+      <button class="pf-btn"        data-filter="2Dgame"  id="pf-2d">Game 2D</button>
+      <button class="pf-btn"        data-filter="3Dgame"  id="pf-3d">Game 3D</button>
+      <button class="pf-btn"        data-filter="3Dmodel" id="pf-model">Model 3D</button>
+      <button class="pf-btn"        data-filter="App"     id="pf-app">APP</button>
+    </div>
+    <div class="portfolio-grid reveal" id="portfolio-grid">
+      <div class="portfolio-card" data-cat="2Dgame">
+        <img src="assets/img/portfolio/LATS_bg.png" alt="Sơn Thủy Truyền Kỳ">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">Game 2D</div>
+          <div class="portfolio-card-name">Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="LATS.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      <div class="portfolio-card" data-cat="2Dgame">
+        <img src="assets/img/portfolio/KyNguyenMoi_BG.png" alt="Kỹ Nguyên Mới">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">Game 2D</div>
+          <div class="portfolio-card-name">Kỹ Nguyên Mới</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="KyNguyenMoi.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      <div class="portfolio-card" data-cat="3Dmodel">
+        <img src="assets/img/portfolio/3Dmodel_DreamHouse3.png" alt="Dream House">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">Model 3D</div>
+          <div class="portfolio-card-name">Dream House</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="DreamHouse.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      <div class="portfolio-card" data-cat="3Dmodel">
+        <img src="assets/img/portfolio/RigAnimation_BG.png" alt="Rig & Animation">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">Model 3D</div>
+          <div class="portfolio-card-name">Rig & Animation</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="RigAnimation.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      <div class="portfolio-card" data-cat="3Dgame">
+        <img src="assets/img/portfolio/LanGiuaPho_game_BG.png" alt="Lăn Giữa Phố">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">Game 3D</div>
+          <div class="portfolio-card-name">Lăn Giữa Phố</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="LanGiuaPho.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      <div class="portfolio-card" data-cat="App">
+        <img src="assets/img/portfolio/QuaLyHieuThuoc_BG.png" alt="Quản Lý Hiệu Thuốc">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">APP</div>
+          <div class="portfolio-card-name">Quản Lý Hiệu Thuốc</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="QuanLyHieuThuoc.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      <div class="portfolio-card" data-cat="3Dmodel">
+        <img src="assets/img/portfolio/LanGiuaPho_model_BG.png" alt="Lăn Giữa Phố">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">Model 3D</div>
+          <div class="portfolio-card-name">Lăn Giữa Phố</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="LanGiuaPhoModel.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      <div class="portfolio-card" data-cat="3Dmodel">
+        <img src="assets/img/portfolio/EchOp_BG.png" alt="Ếch Ộp">
+        <div class="portfolio-card-overlay">
+          <div class="portfolio-card-cat">Model 3D</div>
+          <div class="portfolio-card-name">Ếch Ộp</div>
+        </div>
+        <div class="portfolio-card-hover"><a href="EchOp.html"><i class="bi bi-arrow-right"></i></a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── REVIEWS ── -->
+  <section id="reviews">
+    <div class="section-label" id="rev-label">Đánh Giá</div>
+    <h2 class="section-title reveal" id="rev-title" style="text-align:center; margin-bottom:16px;">Lời Nhận Xét</h2>
+    <p class="reveal" id="rev-subtitle" style="text-align:center; color:var(--text2); font-size:15px; margin-bottom:64px; letter-spacing:1px;">
+      Những đánh giá chuyên môn dành cho dự án <strong style="color:var(--gold);">Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn</strong>
+    </p>
+
+    <!-- Row 1: 3 cards -->
+    <div class="reviews-row3 reveal" style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-bottom:24px;">
+
+      <div class="review-card">
+        <div class="review-quote-icon">"</div>
+        <div class="review-body" id="rev1-body">
+          <p><strong>Văn Hậu</strong> thể hiện tinh thần <strong>đam mê phát triển game</strong> cùng tình yêu sâu sắc với <strong>văn hóa Việt Nam</strong>. Việc lựa chọn hậu truyện <strong>Sơn Tinh – Thủy Tinh</strong> là hướng đi táo bạo, mang đậm bản sắc dân tộc.</p>
+          <p>Dự án kết hợp <strong>thần thoại – hành động – phiêu lưu</strong> theo phong cách <strong>Metroidvania hiện đại</strong>, tạo nên thế giới huyền ảo khác biệt.</p>
+          <p>Nhóm cho thấy sự hiểu rõ <strong>game design flow, game loop</strong> và hệ thống <strong>NPC – nhiệm vụ – nâng cấp nhân vật</strong>, thể hiện tư duy thiết kế game bài bản và định hướng chuyên nghiệp.</p>
+        </div>
+        <div class="review-author">
+          <img src="assets/img/person/Vo_Cong_Dinh.png" alt="Võ Công Đình"
+               onerror="this.src='https://ui-avatars.com/api/?name=Vo+Cong+Dinh&background=2a2a35&color=c8973a&size=48'">
+          <div>
+            <div class="review-author-name">Thạc Sĩ Võ Công Đình</div>
+            <div class="review-author-role" id="rev1-role">Thạc sĩ Tin Học – Đại học Nice - Sophia Antipolis</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card review-card--featured">
+        <div class="review-quote-icon">"</div>
+        <div class="review-body" id="rev2-body">
+          <p>Dự án thể hiện sự đầu tư mạnh về <strong>cốt truyện, thiết kế nhân vật</strong> và xây dựng <strong>thế giới fantasy Việt Nam</strong>.</p>
+          <p>Bản đồ <strong>phi tuyến tính</strong> kết hợp gameplay <strong>khám phá – chiến đấu – mở khóa kỹ năng</strong> mang lại trải nghiệm có chiều sâu.</p>
+          <p>Hội đồng đánh giá cao <strong>chất lượng hình ảnh</strong> và <strong>phong cách nghệ thuật</strong>, đồng thời đề xuất mở rộng thêm <strong>bối cảnh và màn chơi</strong> để tăng sự đa dạng.</p>
+        </div>
+        <div class="review-author">
+          <img src="assets/img/person/Nguyen_Si_Thin.png" alt="Nguyễn Sĩ Thìn"
+               onerror="this.src='https://ui-avatars.com/api/?name=Nguyen+Si+Thin&background=2a2a35&color=c8973a&size=48'">
+          <div>
+            <div class="review-author-name">Tiến Sĩ Nguyễn Sĩ Thìn</div>
+            <div class="review-author-role" id="rev2-role">Giảng viên Trí tuệ Nhân tạo – ĐH CNTT&TT Việt – Hàn</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-quote-icon">"</div>
+        <div class="review-body" id="rev3-body">
+          <p>Dự án khai thác <strong>thần thoại Việt Nam</strong> bằng tinh thần <strong>game hiện đại</strong>, thể hiện tay nghề mỹ thuật vững vàng và bản sắc văn hóa rõ nét.</p>
+          <p>Việc lựa chọn thể loại <strong>Metroidvania</strong> cho thấy sự <strong>dám thử thách</strong> với hướng đi giàu tiềm năng sáng tạo.</p>
+          <p>Nếu tiếp tục phát triển gameplay sâu hơn, đây có thể trở thành <strong>một tựa game Việt mang dấu ấn riêng</strong>.</p>
+        </div>
+        <div class="review-author">
+          <img src="assets/img/person/Pham_Hoang_Anh.png" alt="Phạm Hoàng Ánh"
+               onerror="this.src='https://ui-avatars.com/api/?name=Pham+Hoang+Anh&background=2a2a35&color=c8973a&size=48'">
+          <div>
+            <div class="review-author-name">Phạm Hoàng Ánh</div>
+            <div class="review-author-role" id="rev3-role">Chủ tịch Hội đồng – VTC Academy Đà Nẵng</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: 2 cards centered -->
+    <div class="reviews-row2 reveal" style="display:grid; grid-template-columns:repeat(2,1fr); gap:24px; max-width:900px; margin:0 auto;">
+
+      <div class="review-card">
+        <div class="review-quote-icon">"</div>
+        <div class="review-body" id="rev4-body">
+          <p>Game khai thác hiệu quả <strong>chất liệu thần thoại Việt</strong>, tạo nên bối cảnh quen thuộc nhưng mới mẻ.</p>
+          <p>Định hướng <strong>Metroidvania</strong> mang lại gameplay có chiều sâu với hệ thống <strong>khám phá, chiến đấu và nâng cấp nhân vật</strong>.</p>
+          <p>Thiết kế nhân vật và quái mang <strong>bản sắc văn hóa</strong> là điểm nhấn khác biệt của dự án.</p>
+        </div>
+        <div class="review-author">
+          <img src="assets/img/person/Pham_Thi_Hang.png" alt="Phạm Thị Hằng"
+               onerror="this.src='https://ui-avatars.com/api/?name=Pham+Thi+Hang&background=2a2a35&color=c8973a&size=48'">
+          <div>
+            <div class="review-author-name">Phạm Thị Hằng</div>
+            <div class="review-author-role" id="rev4-role">Giảng viên</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-quote-icon">"</div>
+        <div class="review-body" id="rev5-body">
+          <p>"Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn" là dự án có <strong>tiềm năng sáng tạo và giá trị văn hóa cao</strong>.</p>
+          <p>Sự kết hợp giữa <strong>truyền thuyết Việt Nam</strong> và <strong>game hiện đại</strong> phù hợp xu hướng phát triển ngành công nghiệp sáng tạo.</p>
+          <p>Nếu tiếp tục hoàn thiện gameplay và định hướng mỹ thuật – kỹ thuật, dự án có khả năng <strong>thương mại hóa</strong> và quảng bá văn hóa Việt ra quốc tế.</p>
+        </div>
+        <div class="review-author">
+          <img src="assets/img/person/Nguyen_Tan_Thuan.png" alt="Nguyễn Tấn Thuận"
+               onerror="this.src='https://ui-avatars.com/api/?name=Nguyen+Tan+Thuan&background=2a2a35&color=c8973a&size=48'">
+          <div>
+            <div class="review-author-name">Tiến Sĩ Nguyễn Tấn Thuận</div>
+            <div class="review-author-role" id="rev5-role">Giảng viên ĐH Duy Tân & VTC Academy</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── CONTACT ── -->
+  <section id="contact">
+    <div class="section-label" id="cont-label">Liên Hệ</div>
+    <h2 class="section-title reveal" id="cont-title">Bắt đầu<br>hành trình mới</h2>
+    <div class="contact-grid">
+      <div>
+        <p class="contact-intro reveal" id="cont-intro">Tôi luôn sẵn sàng kết nối, lắng nghe ý tưởng mới và cùng tạo nên những sản phẩm chất lượng. Đừng ngần ngại liên lạc!</p>
+        <div class="contact-items reveal">
+          <div class="contact-item">
+            <div class="contact-item-icon"><i class="bi bi-geo-alt"></i></div>
+            <div>
+              <div class="contact-item-label" id="cont-addr-label">Địa Chỉ</div>
+              <div class="contact-item-value" id="cont-addr-val">Thôn Phú Đông, xã Đại Lộc, TP. Đà Nẵng</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon"><i class="bi bi-telephone"></i></div>
+            <div>
+              <div class="contact-item-label" id="cont-phone-label">Điện Thoại</div>
+              <div class="contact-item-value">0335-926-694</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon"><i class="bi bi-envelope"></i></div>
+            <div>
+              <div class="contact-item-label" id="cont-email-label">Email</div>
+              <div class="contact-item-value">namhau221@gmail.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-right reveal" style="transition-delay:0.2s">
+        <blockquote class="contact-quote" id="cont-quote">
+          "Tôi đam mê phát triển game và luôn không ngừng học hỏi"
+          <em id="cont-quote-author">— Nguyễn Văn Hậu</em>
+        </blockquote>
+        <div class="social-row">
+          <a href="https://www.facebook.com/22nguyenvanhau" class="social-btn" target="_blank">
+            <i class="bi bi-facebook"></i> Facebook
+          </a>
+          <a href="https://github.com/Ga-Mo221" class="social-btn" target="_blank">
+            <i class="bi bi-github"></i> GitHub
+          </a>
+          <a href="https://www.linkedin.com/in/hậu-nguyễn-b97a9b3bb/" class="social-btn" target="_blank">
+            <i class="bi bi-linkedin"></i> LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>© 2025 <span class="footer-name">Nguyễn Văn Hậu</span></p>
+  <p id="footer-role" style="font-size:11px; color:rgba(154,143,128,0.5);">Game Developer · 3D Artist · Đà Nẵng, Việt Nam</p>
+</footer>
+
+<script>
+(function () {
+
+  /* ══════════════════════════════════════════
+     CANVAS BACKGROUND
+  ══════════════════════════════════════════ */
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.size = Math.random() * 1.5 + 0.3;
+      this.speedX = (Math.random() - 0.5) * 0.3;
+      this.speedY = -Math.random() * 0.5 - 0.1;
+      this.opacity = Math.random() * 0.4 + 0.1;
+      this.life = 0;
+      this.maxLife = Math.random() * 300 + 200;
+    }
+    update() {
+      this.x += this.speedX; this.y += this.speedY; this.life++;
+      if (this.life > this.maxLife || this.y < 0) this.reset();
+    }
+    draw() {
+      const fade = this.life < 30 ? this.life / 30
+                 : this.life > this.maxLife - 30 ? (this.maxLife - this.life) / 30 : 1;
+      ctx.globalAlpha = this.opacity * fade;
+      ctx.fillStyle = '#c8973a';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function initParticles() {
+    particles = [];
+    for (let i = 0; i < 80; i++) {
+      const p = new Particle();
+      p.life = Math.floor(Math.random() * p.maxLife);
+      particles.push(p);
+    }
+  }
+
+  function animCanvas() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = 0.03;
+    ctx.strokeStyle = '#c8973a';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x < W; x += 80) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 80) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animCanvas);
+  }
+
+  resize(); initParticles(); animCanvas();
+  window.addEventListener('resize', resize);
+
+  /* ══════════════════════════════════════════
+     CUSTOM CURSOR
+  ══════════════════════════════════════════ */
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+
+  (function animCursor() {
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  })();
+
+  document.querySelectorAll('a, button, .portfolio-card, .skill-cell').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '16px'; cursor.style.height = '16px';
+      ring.style.width = '56px';   ring.style.height = '56px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '8px';  cursor.style.height = '8px';
+      ring.style.width = '36px';   ring.style.height = '36px';
+    });
+  });
+
+  /* ══════════════════════════════════════════
+     SCROLL REVEAL
+  ══════════════════════════════════════════ */
+  const revObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => revObserver.observe(el));
+
+  const tlObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.timeline-item').forEach(el => tlObserver.observe(el));
+
+  /* ══════════════════════════════════════════
+     ACTIVE NAV
+  ══════════════════════════════════════════ */
+  const navLinks = document.querySelectorAll('.nav-link');
+  const navObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.nav-link[data-section="${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('section[id]').forEach(s => navObserver.observe(s));
+
+  /* ══════════════════════════════════════════
+     PORTFOLIO FILTER
+  ══════════════════════════════════════════ */
+  const pfBtns  = document.querySelectorAll('.pf-btn');
+  const pfCards = document.querySelectorAll('.portfolio-card');
+
+  pfBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      pfBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      pfCards.forEach(card => {
+        const show = filter === '*' || card.dataset.cat === filter;
+        card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        if (show) {
+          card.style.display = 'block';
+          setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'scale(1)'; }, 10);
+        } else {
+          card.style.opacity = '0'; card.style.transform = 'scale(0.95)';
+          setTimeout(() => { card.style.display = 'none'; }, 400);
+        }
+      });
+    });
+  });
+
+  /* ══════════════════════════════════════════
+     PARALLAX
+  ══════════════════════════════════════════ */
+  window.addEventListener('scroll', () => {
+    const lotus = document.querySelector('#hero .lotus-ornament');
+    if (lotus) lotus.style.transform = `translateY(${window.scrollY * 0.2}px)`;
+  });
+
+  /* ══════════════════════════════════════════
+     TYPEWRITER
+  ══════════════════════════════════════════ */
+  let typedTexts = [
+    'thổi hồn vào những thế giới số',
+    'biến huyền thoại thành gameplay',
+    'tạo ra trải nghiệm có chiều sâu'
+  ];
+  let _ti = 0, _ci = 0, _del = false, _timer = null;
+
+  function typeLoop() {
+    const el = document.getElementById('typed-text');
+    if (!el) return;
+    const cur = typedTexts[_ti];
+    if (!_del) {
+      el.textContent = cur.slice(0, ++_ci);
+      if (_ci === cur.length) { _del = true; _timer = setTimeout(typeLoop, 2200); return; }
+    } else {
+      el.textContent = cur.slice(0, --_ci);
+      if (_ci === 0) { _del = false; _ti = (_ti + 1) % typedTexts.length; }
+    }
+    _timer = setTimeout(typeLoop, _del ? 40 : 70);
+  }
+
+  function restartTypewriter(texts) {
+    clearTimeout(_timer);
+    typedTexts = texts; _ti = 0; _ci = 0; _del = false;
+    const el = document.getElementById('typed-text');
+    if (el) el.textContent = '';
+    _timer = setTimeout(typeLoop, 400);
+  }
+
+  setTimeout(typeLoop, 2500);
+
+  /* ══════════════════════════════════════════
+     TRANSLATIONS
+  ══════════════════════════════════════════ */
+  const T = {
+    vi: {
+      nav: ['Home','About','Skills','CV','Work','Review','Contact'],
+      hero_eyebrow:   'Unity Game Developer · 3D Artist · Vietnamese Myth',
+      hero_typed:     ['thổi hồn vào những thế giới s���','biến huyền thoại thành gameplay','tạo ra trải nghiệm có chiều sâu'],
+      hero_line2:     '— nơi huyền thoại Việt sống dậy trong từng frame animation và từng dòng code.',
+      hero_tagline_prefix: 'Tôi',
+      hero_btn1: 'Xem Tác Phẩm', hero_btn2: 'Liên Hệ Ngay',
+      hero_scroll: 'Cuộn xuống',
+      about_label: 'Về Tôi',
+      about_title: 'Người vẽ nên<br>câu chuyện',
+      about_p1: 'Với tôi, làm game không chỉ là lập trình hay thiết kế hình ảnh — mà là quá trình <strong>thổi sự sống vào một thế giới số</strong>. Tôi theo đuổi việc tạo ra gameplay có ý nghĩa, nơi người chơi thật sự cảm nhận được hành trình mà họ đang trải qua.',
+      about_p2: 'Là một <strong>Unity Game Developer</strong> và <strong>3D Artist</strong>, tôi kết hợp tư duy kỹ thuật với cảm quan nghệ thuật. Dự án nổi bật nhất của tôi — <strong>Sơn Thủy Truyền Kỳ</strong> — lấy cảm hứng từ thần thoại Việt Nam, đạt giải Á Quân V-UNIQUE PROJECT AWARD 2025.',
+      d_major:'Chuyên Ngành', d_major_v:'Unity 2D/3D · C# · Blender',
+      d_lang:'Ngôn Ngữ', d_lang_v:'Tiếng Việt · Tiếng Nhật (N3)',
+      d_edu:'Học Vấn', d_edu_v:'VTC Academy — Game Dev',
+      d_cont:'Liên Lạc', d_cont_v:'namhau221@gmail.com',
+      profile_title:'Game Developer',
+      skills_label:'Kỹ Năng', skills_title:'Vũ khí<br>của tôi',
+      s1t:'Unity Engine',        s1d:'Phát triển gameplay 2D/3D, hệ thống animation, UI và quản lý logic game.',
+      s2t:'C# Programming',      s2d:'Lập trình gameplay, State Machine, AI pathfinding và tối ưu hiệu năng.',
+      s3t:'Game Systems',        s3d:'Save/Load, Inventory, Settings Manager, A* Pathfinding, Enemy AI.',
+      s4t:'3D Modeling',         s4d:'Tạo và tối ưu asset 3D game-ready trên Blender, tích hợp vào Unity.',
+      s5t:'Handpainted Texture', s5d:'Tạo texture hand-painted với Substance Painter, phong cách cổ điển Việt.',
+      s6t:'Rigging & Animation', s6d:'Rigging, animation Blender, Spine Pro và Animator Controller trong Unity.',
+      exp_label:'Kinh Nghiệm', exp_title:'Hành trình<br>sáng tạo',
+      e1p:'6/2025 – 11/2025', e1t:'Game Developer — Team Project',
+      e1c:'V-UNIQUE PROJECT AWARD 2025 · Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn',
+      e1l1:'Thiết kế State Machine cho từng class nhân vật và hệ thống Animator đa trạng thái',
+      e1l2:'Tích hợp A* Pathfinding, xây dựng AI hành vi cho Enemy',
+      e1l3:'Sử dụng Spine Pro xây dựng animation nhân vật 2D',
+      e1l4:'Áp dụng thuật toán nội suy để làm mượt chuyển động',
+      e1l5:'Quản lý nhóm và phối hợp quy trình Planning → Production → Testing',
+      e1b:'🥈 Á Quân V-UNIQUE PROJECT AWARD 2025',
+      e2p:'6/2025 – 11/2025', e2t:'Unity Game Dev Foundation',
+      e2c:'Giai đoạn Học tập & Phát triển Cá nhân',
+      e2l1:'Phát triển nhiều dự án game 2D với Unity và C#',
+      e2l2:'Xây dựng gameplay system, animation controller và UI tương tác',
+      e2l3:'Thiết kế hệ thống Save/Load, Inventory và Settings Manager',
+      e3p:'1/2026', e3t:'3D Modeling & Animation Training',
+      e3c:'Cộng đồng "Động Làm Game" của Chương Võ',
+      e3l1:'Modeling, animation nhân vật và môi trường game 3D',
+      e3l2:'Tối ưu topology và polygon cho hiệu năng tốt',
+      e3l3:'Phát triển kỹ năng hand-painted texture và chuyển động nhân vật',
+      port_label:'Tác Phẩm', port_title:'Những thế giới<br>tôi đã tạo',
+      pf_all:'Tất Cả', pf_2d:'Game 2D', pf_3d:'Game 3D', pf_model:'Model 3D', pf_app:'APP',
+      rev_label:'Đánh Giá', rev_title:'Lời Nhận Xét',
+      rev_sub:'Những đánh giá chuyên môn dành cho dự án <strong style="color:var(--gold);">Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn</strong>',
+      rev1_role:'Thạc sĩ Tin Học – Đại học Nice - Sophia Antipolis',
+      rev1_body:'<p><strong>Văn Hậu</strong> thể hiện tinh thần <strong>đam mê phát triển game</strong> cùng tình yêu sâu sắc với <strong>văn hóa Việt Nam</strong>. Việc lựa chọn hậu truyện <strong>Sơn Tinh – Thủy Tinh</strong> là hướng đi táo bạo, mang đậm bản sắc dân tộc.</p><p>Dự án kết hợp <strong>thần thoại – hành động – phiêu lưu</strong> theo phong cách <strong>Metroidvania hiện đại</strong>, tạo nên thế giới huyền ảo khác biệt.</p><p>Nhóm cho thấy sự hiểu rõ <strong>game design flow, game loop</strong> và hệ thống <strong>NPC – nhiệm vụ – nâng cấp nhân vật</strong>, thể hiện tư duy thiết kế game bài bản và định hướng chuyên nghiệp.</p>',
+      rev2_role:'Giảng viên Trí tuệ Nhân tạo – ĐH CNTT&TT Việt – Hàn',
+      rev2_body:'<p>Dự án thể hiện sự đầu tư mạnh về <strong>cốt truyện, thiết kế nhân vật</strong> và xây dựng <strong>thế giới fantasy Việt Nam</strong>.</p><p>Bản đồ <strong>phi tuyến tính</strong> kết hợp gameplay <strong>khám phá – chiến đấu – mở khóa kỹ năng</strong> mang lại trải nghiệm có chiều sâu.</p><p>Hội đồng đánh giá cao <strong>chất lượng hình ảnh</strong> và <strong>phong cách nghệ thuật</strong>, đồng thời đề xuất mở rộng thêm <strong>bối cảnh và màn chơi</strong> để tăng sự đa dạng.</p>',
+      rev3_role:'Chủ tịch Hội đồng – VTC Academy Đà Nẵng',
+      rev3_body:'<p>Dự án khai thác <strong>thần thoại Việt Nam</strong> bằng tinh thần <strong>game hiện đại</strong>, thể hiện tay nghề mỹ thuật vững vàng và bản sắc văn hóa rõ nét.</p><p>Việc lựa chọn thể loại <strong>Metroidvania</strong> cho thấy sự <strong>dám thử thách</strong> với hướng đi giàu tiềm năng sáng tạo.</p><p>Nếu tiếp tục phát triển gameplay sâu hơn, đây có thể trở thành <strong>một tựa game Việt mang dấu ấn riêng</strong>.</p>',
+      rev4_role:'Giảng viên',
+      rev4_body:'<p>Game khai thác hiệu quả <strong>chất liệu thần thoại Việt</strong>, tạo nên bối cảnh quen thuộc nhưng mới mẻ.</p><p>Định hướng <strong>Metroidvania</strong> mang lại gameplay có chiều sâu với hệ thống <strong>khám phá, chiến đấu và nâng cấp nhân vật</strong>.</p><p>Thiết kế nhân vật và quái mang <strong>bản sắc văn hóa</strong> là điểm nhấn khác biệt của dự án.</p>',
+      rev5_role:'Giảng viên ĐH Duy Tân & VTC Academy',
+      rev5_body:'<p>"Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn" là dự án có <strong>tiềm năng sáng tạo và giá trị văn hóa cao</strong>.</p><p>Sự kết hợp giữa <strong>truyền thuyết Việt Nam</strong> và <strong>game hiện đại</strong> phù hợp xu hướng phát triển ngành công nghiệp sáng tạo.</p><p>Nếu tiếp tục hoàn thiện gameplay và định hướng mỹ thuật – kỹ thuật, dự án có khả năng <strong>thương mại hóa</strong> và quảng bá văn hóa Việt ra quốc tế.</p>',
+      cont_label:'Liên Hệ', cont_title:'Bắt đầu<br>hành trình mới',
+      cont_intro:'Tôi luôn sẵn sàng kết nối, lắng nghe ý tưởng mới và cùng tạo nên những sản phẩm chất lượng. Đừng ngần ngại liên lạc!',
+      cont_addr_l:'Địa Chỉ', cont_addr_v:'Thôn Phú Đông, xã Đại Lộc, TP. Đà Nẵng',
+      cont_phone_l:'Điện Thoại', cont_email_l:'Email',
+      cont_quote:'"Tôi đam mê phát triển game và luôn không ngừng học hỏi"',
+      cont_author:'— Nguyễn Văn Hậu',
+      footer_role:'Game Developer · 3D Artist · Đà Nẵng, Việt Nam',
+    },
+    en: {
+      nav: ['Home','About','Skills','CV','Work','Review','Contact'],
+      hero_eyebrow:   'Unity Game Developer · 3D Artist · Vietnamese Myth',
+      hero_typed:     ['breathe soul into digital worlds','turn mythology into gameplay','craft deeply meaningful experiences'],
+      hero_line2:     '— where Vietnamese legends come alive in every animation frame and every line of code.',
+      hero_tagline_prefix: 'I',
+      hero_btn1: 'View My Work', hero_btn2: 'Contact Me',
+      hero_scroll: 'Scroll down',
+      about_label: 'About Me',
+      about_title: 'The one who<br>tells stories',
+      about_p1: 'To me, making games is not just programming or visual design — it\'s the process of <strong>breathing life into a digital world</strong>. I pursue the creation of meaningful gameplay where players truly feel the journey they are experiencing.',
+      about_p2: 'As a <strong>Unity Game Developer</strong> and <strong>3D Artist</strong>, I blend technical thinking with artistic sensibility. My most notable project — <strong>Sơn Thủy Truyền Kỳ</strong> — inspired by Vietnamese mythology, won Runner-up at V-UNIQUE PROJECT AWARD 2025.',
+      d_major:'Specialization', d_major_v:'Unity 2D/3D · C# · Blender',
+      d_lang:'Languages', d_lang_v:'Vietnamese · Japanese (N3)',
+      d_edu:'Education', d_edu_v:'VTC Academy — Game Dev',
+      d_cont:'Contact', d_cont_v:'namhau221@gmail.com',
+      profile_title:'Game Developer',
+      skills_label:'Skills', skills_title:'My<br>Arsenal',
+      s1t:'Unity Engine',        s1d:'Develop 2D/3D gameplay, animation systems, UI and game logic management.',
+      s2t:'C# Programming',      s2d:'Gameplay programming, State Machine, AI pathfinding and performance optimization.',
+      s3t:'Game Systems',        s3d:'Save/Load, Inventory, Settings Manager, A* Pathfinding, Enemy AI.',
+      s4t:'3D Modeling',         s4d:'Create and optimize game-ready 3D assets in Blender, integrated into Unity.',
+      s5t:'Handpainted Texture', s5d:'Hand-painted textures with Substance Painter, in classic Vietnamese style.',
+      s6t:'Rigging & Animation', s6d:'Rigging and animation in Blender, Spine Pro and Animator Controller in Unity.',
+      exp_label:'Experience', exp_title:'My creative<br>journey',
+      e1p:'06/2025 – 11/2025', e1t:'Game Developer — Team Project',
+      e1c:'V-UNIQUE PROJECT AWARD 2025 · Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn',
+      e1l1:'Designed State Machine for each character class and multi-state Animator system',
+      e1l2:'Integrated A* Pathfinding, built Enemy behavior AI',
+      e1l3:'Used Spine Pro to build 2D character animations',
+      e1l4:'Applied interpolation algorithms for smooth movement',
+      e1l5:'Team management and coordination: Planning → Production → Testing',
+      e1b:'🥈 Runner-up V-UNIQUE PROJECT AWARD 2025',
+      e2p:'06/2025 – 11/2025', e2t:'Unity Game Dev Foundation',
+      e2c:'Personal Learning & Development Phase',
+      e2l1:'Developed multiple 2D game projects with Unity and C#',
+      e2l2:'Built gameplay systems, animation controllers and interactive UI',
+      e2l3:'Designed Save/Load, Inventory and Settings Manager systems',
+      e3p:'01/2026', e3t:'3D Modeling & Animation Training',
+      e3c:'"Động Làm Game" Community by Chương Võ',
+      e3l1:'Modeling, animation of characters and 3D game environments',
+      e3l2:'Optimized topology and polygon count for performance',
+      e3l3:'Developed hand-painted texture and character movement skills',
+      port_label:'Portfolio', port_title:'Worlds I have<br>created',
+      pf_all:'All', pf_2d:'2D Game', pf_3d:'3D Game', pf_model:'3D Model', pf_app:'APP',
+      rev_label:'Reviews', rev_title:'Testimonials',
+      rev_sub:'Expert reviews for the project <strong style="color:var(--gold);">Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn</strong>',
+      rev1_role:'Master of Computer Science – University of Nice - Sophia Antipolis',
+      rev1_body:'<p><strong>Van Hau</strong> demonstrates a spirit of <strong>passion for game development</strong> alongside a deep love for <strong>Vietnamese culture</strong>. Choosing a sequel to <strong>Sơn Tinh – Thủy Tinh</strong> is a bold direction steeped in national identity.</p><p>The project blends <strong>mythology – action – adventure</strong> in the style of a <strong>modern Metroidvania</strong>, crafting a distinct and enchanting world.</p><p>The team shows clear understanding of <strong>game design flow, game loop</strong>, and systems like <strong>NPC – quests – character upgrades</strong>, reflecting solid game design thinking and professional direction.</p>',
+      rev2_role:'AI Lecturer – Vietnam-Korea University of Information and Communication Technology',
+      rev2_body:'<p>The project demonstrates strong investment in <strong>storytelling, character design</strong>, and building a <strong>Vietnamese fantasy world</strong>.</p><p>The <strong>non-linear map</strong> combined with gameplay of <strong>exploration – combat – skill unlocking</strong> delivers a deep and rewarding experience.</p><p>The jury highly appreciates the <strong>visual quality</strong> and <strong>art style</strong>, while also recommending expanding <strong>environments and levels</strong> to increase diversity.</p>',
+      rev3_role:'Council Chair – VTC Academy Da Nang',
+      rev3_body:'<p>The project draws on <strong>Vietnamese mythology</strong> with the spirit of <strong>modern game design</strong>, showcasing solid artistic craftsmanship and a clear cultural identity.</p><p>Choosing the <strong>Metroidvania</strong> genre demonstrates the <strong>courage to take on challenges</strong> with a direction rich in creative potential.</p><p>With deeper gameplay development, this could become <strong>a Vietnamese game with its own distinct mark</strong>.</p>',
+      rev4_role:'Lecturer',
+      rev4_body:'<p>The game effectively draws on <strong>Vietnamese mythological material</strong>, creating a setting that feels both familiar and refreshing.</p><p>The <strong>Metroidvania</strong> direction delivers deep gameplay with systems of <strong>exploration, combat, and character upgrades</strong>.</p><p>The character and monster designs bearing <strong>cultural identity</strong> are the standout differentiators of this project.</p>',
+      rev5_role:'Lecturer at Duy Tan University & VTC Academy',
+      rev5_body:'<p>"Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn" is a project with <strong>high creative potential and cultural value</strong>.</p><p>The combination of <strong>Vietnamese legends</strong> and <strong>modern game design</strong> aligns well with trends in the creative industry.</p><p>With continued refinement of gameplay and artistic–technical direction, the project has the potential for <strong>commercialization</strong> and promoting Vietnamese culture on the international stage.</p>',
+      cont_label:'Contact', cont_title:'Start a<br>new journey',
+      cont_intro:'I am always ready to connect, listen to new ideas and create quality products together. Don\'t hesitate to reach out!',
+      cont_addr_l:'Address', cont_addr_v:'Phu Dong Village, Dai Loc Commune, Da Nang City',
+      cont_phone_l:'Phone', cont_email_l:'Email',
+      cont_quote:'"I am passionate about game development and never stop learning"',
+      cont_author:'— Nguyen Van Hau',
+      footer_role:'Game Developer · 3D Artist · Da Nang, Vietnam',
+    },
+    ja: {
+      nav: ['ホーム','紹介','スキル','経歴','作品','レビュー','連絡'],
+      hero_eyebrow:   'Unityゲーム開発者 · 3Dアーティスト · ベトナム神話',
+      hero_typed:     ['デジタル世界に魂を吹き込む','神話をゲームプレイに変える','深みある体験を創り出す'],
+      hero_line2:     '— ベトナムの神話���、すべてのアニメーションフレームとコードの一行に息吹く世界を創る。',
+      hero_tagline_prefix: '私は',
+      hero_btn1: '作品を見る', hero_btn2: 'お問い合わせ',
+      hero_scroll: 'スクロール',
+      about_label: '自己紹介',
+      about_title: '物語を描く<br>クリエイター',
+      about_p1: '私にとって、ゲーム制作はプログラミングやビジュアルデザインだけでなく、<strong>デジタル世界に命を吹き込む</strong>プロセスです。プレイヤーが本当に旅を感じられる、意味のあるゲームプレイを追求しています。',
+      about_p2: '<strong>Unityゲーム開発者</strong>かつ<strong>3Dアーティスト</strong>として、技術的思考と芸術的感性を融合させています。代表作 — <strong>Sơn Thủy Truyền Kỳ</strong> — はベトナム神話にインスパイアされ、V-UNIQUE PROJECT AWARD 2025で準優勝を獲得しました。',
+      d_major:'専門分野', d_major_v:'Unity 2D/3D · C# · Blender',
+      d_lang:'言語', d_lang_v:'ベトナム語 · 日本語 (N3)',
+      d_edu:'学歴', d_edu_v:'VTC Academy — ゲーム開発',
+      d_cont:'連絡先', d_cont_v:'namhau221@gmail.com',
+      profile_title:'ゲーム開発者',
+      skills_label:'スキル', skills_title:'私の<br>武器',
+      s1t:'Unityエンジン',       s1d:'2D/3Dゲームプレイ、アニメーションシステム、UIとゲームロジックの開発。',
+      s2t:'C#プログラミング',    s2d:'ゲームプレイプログラミング、ステートマシン、AIパスファインディングと最適化。',
+      s3t:'ゲームシステム',      s3d:'セーブ/ロード、インベントリ、設定マネージャー、A*パスファインディング、敵AI。',
+      s4t:'3Dモデリング',        s4d:'Blenderでゲーム用3Dアセットを作成・最適化し、Unityに統合。',
+      s5t:'手描きテクスチャ',    s5d:'Substance Painterで手描きテクスチャを作成、ベトナム古典スタイル。',
+      s6t:'リギング & アニメーション', s6d:'Blender、Spine Proでのリギングとアニメーション、UnityのAnimator Controller。',
+      exp_label:'経験', exp_title:'クリエイティブな<br>旅',
+      e1p:'2025年6月 – 11月', e1t:'ゲーム開発者 — チームプロジェクト',
+      e1c:'V-UNIQUE PROJECT AWARD 2025 · Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn',
+      e1l1:'キャラクタークラスごとのステートマシンとマルチステートAnimatorシステムを設計',
+      e1l2:'A*パスファインディングを統合し、敵の行動AIを構築',
+      e1l3:'Spine Proを使用して2Dキャラクターアニメーションを構築',
+      e1l4:'補間アルゴリズムを適用して動きをスムーズに',
+      e1l5:'チーム管理とPlanning → Production → Testingの工程調整',
+      e1b:'���� V-UNIQUE PROJECT AWARD 2025 準優勝',
+      e2p:'2025年6月 – 11月', e2t:'Unity ゲーム開発基礎',
+      e2c:'個人学習・スキルアップ期間',
+      e2l1:'UnityとC#で複数の2Dゲームプロジェクトを開発',
+      e2l2:'ゲームプレイシステム、アニメーションコントローラー、インタラクティブUIを構築',
+      e2l3:'セーブ/ロード、インベントリ、設定マネージャーシステムを設計',
+      e3p:'2026年1月', e3t:'3Dモデリング & アニメーション研修',
+      e3c:'Chương Võの「Động Làm Game」コミュニティ',
+      e3l1:'キャラクターと3Dゲーム環境のモデリング・アニメーション',
+      e3l2:'パフォーマンスのためのトポロジーとポリゴン最適化',
+      e3l3:'手描きテクスチャとキャラクターの動きのスキルを向上',
+      port_label:'作品集', port_title:'私が創った<br>世界',
+      pf_all:'すべて', pf_2d:'2Dゲーム', pf_3d:'3Dゲーム', pf_model:'3Dモデル', pf_app:'アプリ',
+      rev_label:'レビュー', rev_title:'審査員の評価',
+      rev_sub:'プロジェクト <strong style="color:var(--gold);">Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn</strong> への専門的評価',
+      rev1_role:'コンピュータサイエンス修士 – ニース・ソフィアアンティポリス大学',
+      rev1_body:'<p><strong>ヴァン・ハウ</strong>は<strong>ゲーム開発への情熱</strong>と<strong>ベトナム文化</strong>への深い愛情を示しています。<strong>Sơn Tinh – Thủy Tinh</strong>の続編を選んだことは、民族のアイデンティティを体現した大胆な方向性です。</p><p>このプロジェクトは<strong>神話 – アクション – アドベンチャー</strong>を<strong>現代的なMetroidvania</strong>スタイルで融合させ、独特で幻想的な世界を作り上げています。</p><p>チームは<strong>ゲームデザインフロー、ゲームループ</strong>および<strong>NPC – クエスト – キャラクターアップグレード</strong>システムへの深い理解を示し、体系的なゲームデザイン思考と専門的な方向性を表しています。</p>',
+      rev2_role:'AI講師 – ベトナム韓国情報通信技術大学',
+      rev2_body:'<p>このプロジェクトは<strong>ストーリー、キャラクターデザイン</strong>と<strong>ベトナムファンタジーの世界構築</strong>に強い投資を示しています。</p><p><strong>非線形マップ</strong>と<strong>探索 – 戦闘 – スキル解放</strong>のゲームプレイの組み合わせが深みのある体験を提供しています。</p><p>審査委員会は<strong>ビジュアル品質</strong>と<strong>アートスタイル</strong>を高く評価し、多様性を高めるために<strong>背景とステージ</strong>の拡充を提案しています。</p>',
+      rev3_role:'評議会議長 – VTCアカデミー ダナン',
+      rev3_body:'<p>このプロジェクトは<strong>現代ゲーム精神</strong>で<strong>ベトナム神話</strong>を活用し、確かな芸術的技量と明確な文化的アイデンティティを示しています。</p><p><strong>Metroidvania</strong>ジャンルの選択は、創造的可能性に富んだ方向性への<strong>挑戦する勇気</strong>を示しています。</p><p>ゲームプレイをさらに深めることで、<strong>独自の刻印を持つベトナムゲーム</strong>になる可能性があります。</p>',
+      rev4_role:'講師',
+      rev4_body:'<p>このゲームは<strong>ベトナム神話の素材</strong>を効果的に活用し、親しみやすくも新鮮な世界観を作り出しています。</p><p><strong>Metroidvania</strong>の方向性は<strong>探索、戦闘、キャラクターアップグレード</strong>のシステムで深みのあるゲームプレイを提供しています。</p><p><strong>文化的アイデンティティ</strong>を持つキャラクターとモンスターのデザインがこのプロジェクトの際立った差別化要素です。</p>',
+      rev5_role:'ズイタン大学 & VTCアカデミー 講師',
+      rev5_body:'<p>「Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn」は<strong>高い創造的可能性と文化的価値</strong>を持つプロジェクトです。</p><p><strong>ベトナムの伝説</strong>と<strong>現代ゲーム</strong>の融合はクリエイティブ産業のトレンドと合致しています。</p><p>ゲームプレイと芸術的・技術的方向性の改善を続けることで、このプロジェクトは<strong>商業化</strong>とベトナム文化の国際発信の可能性を持っています。</p>',
+      cont_label:'連絡', cont_title:'新しい旅を<br>始めましょう',
+      cont_intro:'いつでもつながり、新しいアイデアを聞き、共に質の高い作品を作る準備ができています。お気軽にご連絡ください！',
+      cont_addr_l:'住所', cont_addr_v:'フードン村、ダイロク社、ダナン市',
+      cont_phone_l:'電話番号', cont_email_l:'メール',
+      cont_quote:'「ゲーム開発に情熱を持ち、常に学び続けています」',
+      cont_author:'— Nguyễn Văn Hậu',
+      footer_role:'ゲーム開発者 · 3Dアーティスト · ベトナム・ダナン',
+    }
+  };
+
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function setHTML(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = val;
+  }
+
+  function applyLang(lang) {
+    const t = T[lang];
+
+    // Nav labels
+    const navSpans = document.querySelectorAll('.nav-link span');
+    t.nav.forEach((v, i) => { if (navSpans[i]) navSpans[i].textContent = v; });
+
+    // Hero
+    setText('hero-eyebrow', t.hero_eyebrow);
+    document.getElementById('hero-tagline').childNodes[0].textContent = t.hero_tagline_prefix + ' ';
+    setText('hero-tagline-line2', t.hero_line2);
+    setText('hero-btn1', t.hero_btn1);
+    setText('hero-btn2', t.hero_btn2);
+    document.getElementById('hero-scroll').innerHTML = `<div class="scroll-line"></div>${t.hero_scroll}`;
+    restartTypewriter(t.hero_typed);
+
+    // About
+    setText('about-label', t.about_label);
+    setHTML('about-title', t.about_title);
+    setHTML('about-p1', t.about_p1);
+    setHTML('about-p2', t.about_p2);
+    setText('detail-major-label', t.d_major);   setText('detail-major-val', t.d_major_v);
+    setText('detail-lang-label',  t.d_lang);    setText('detail-lang-val',  t.d_lang_v);
+    setText('detail-edu-label',   t.d_edu);     setText('detail-edu-val',   t.d_edu_v);
+    setText('detail-contact-label', t.d_cont);  setText('detail-contact-val', t.d_cont_v);
+    setText('profile-title', t.profile_title);
+
+    // Skills
+    setText('skills-label', t.skills_label);
+    setHTML('skills-title', t.skills_title);
+    for (let i = 1; i <= 6; i++) {
+      setText(`skill${i}-title`, t[`s${i}t`]);
+      setText(`skill${i}-desc`,  t[`s${i}d`]);
+    }
+
+    // Experience
+    setText('exp-label', t.exp_label);
+    setHTML('exp-title', t.exp_title);
+    for (let e = 1; e <= 3; e++) {
+      setText(`exp${e}-period`,  t[`e${e}p`]);
+      setText(`exp${e}-title`,   t[`e${e}t`]);
+      setText(`exp${e}-company`, t[`e${e}c`]);
+      const liCount = e === 1 ? 5 : 3;
+      for (let l = 1; l <= liCount; l++) setText(`exp${e}-li${l}`, t[`e${e}l${l}`]);
+    }
+    setText('exp1-badge', t.e1b);
+
+    // Portfolio
+    setText('port-label', t.port_label);
+    setHTML('port-title', t.port_title);
+    setText('pf-all',   t.pf_all);
+    setText('pf-2d',    t.pf_2d);
+    setText('pf-3d',    t.pf_3d);
+    setText('pf-model', t.pf_model);
+    setText('pf-app',   t.pf_app);
+
+    // Reviews
+    setText('rev-label', t.rev_label);
+    setText('rev-title', t.rev_title);
+    setHTML('rev-subtitle', t.rev_sub);
+    for (let i = 1; i <= 5; i++) {
+      setHTML(`rev${i}-body`, t[`rev${i}_body`]);
+      setText(`rev${i}-role`, t[`rev${i}_role`]);
+    }
+
+    // Contact
+    setText('cont-label', t.cont_label);
+    setHTML('cont-title', t.cont_title);
+    setText('cont-intro', t.cont_intro);
+    setText('cont-addr-label',  t.cont_addr_l);
+    setText('cont-addr-val',    t.cont_addr_v);
+    setText('cont-phone-label', t.cont_phone_l);
+    setText('cont-email-label', t.cont_email_l);
+    const quoteEl = document.getElementById('cont-quote');
+    if (quoteEl) quoteEl.innerHTML = `${t.cont_quote}<em id="cont-quote-author">${t.cont_author}</em>`;
+
+    // Footer
+    setText('footer-role', t.footer_role);
+
+    // Lang toggle label
+    document.querySelector('.lang-current').textContent = lang.toUpperCase();
+    document.querySelectorAll('.lang-opt').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+
+    localStorage.setItem('nvh_lang', lang);
+  }
+
+  /* ══════════════════════════════════════════
+     LANG DROPDOWN TOGGLE
+  ══════════════════════════════════════════ */
+  const langToggle   = document.getElementById('lang-toggle');
+  const langDropdown = document.getElementById('lang-dropdown');
+
+  langToggle.addEventListener('click', e => {
+    e.stopPropagation();
+    langDropdown.classList.toggle('open');
+  });
+
+  document.addEventListener('click', () => langDropdown.classList.remove('open'));
+  langDropdown.addEventListener('click', e => e.stopPropagation());
+
+  document.querySelectorAll('.lang-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyLang(btn.dataset.lang);
+      langDropdown.classList.remove('open');
+    });
+  });
+
+  // Restore saved language
+  const saved = localStorage.getItem('nvh_lang');
+  if (saved && saved !== 'vi') applyLang(saved);
+
+})();
+</script>
+</body>
+</html>

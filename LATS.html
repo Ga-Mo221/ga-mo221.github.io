@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sơn Thủy Truyền Kỳ – Linh Ấn Thần Sơn · Nguyễn Văn Hậu</title>
+  <link rel="icon" type="image/png" href="assets/img/code.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0a0a0f; --ink2: #12121a; --ink3: #1a1a26;
+      --gold: #c8973a; --gold2: #e8b85a;
+      --jade2: #5cb89e;
+      --text: #e8e0d0; --text2: #9a8f80;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--ink); color: var(--text); font-family: 'Inter', sans-serif; font-weight: 300; overflow-x: hidden; }
+
+    #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.4; }
+
+    .cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .3s, height .3s; mix-blend-mode: difference; }
+    .cursor-ring { width: 36px; height: 36px; border: 1px solid rgba(200,151,58,.5); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: all .15s ease; }
+
+    #nav {
+      position: fixed; left: 0; top: 0; height: 100vh; width: 72px;
+      background: rgba(10,10,15,.92); border-right: 1px solid rgba(200,151,58,.12);
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 36px; z-index: 100; padding: 24px 0;
+    }
+    .nav-logo { position: absolute; top: 28px; font-family: 'Cinzel', serif; font-size: 11px; font-weight: 900; color: var(--gold); letter-spacing: 3px; writing-mode: vertical-rl; }
+    .nav-link { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text2); text-decoration: none; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; transition: all .4s ease; position: relative; }
+    .nav-link i { font-size: 18px; }
+    .nav-link::after { content: ''; position: absolute; left: -1px; width: 2px; height: 0; background: var(--gold); transition: height .4s ease; transform: translateX(-50%); }
+    .nav-link:hover, .nav-link.active { color: var(--gold); }
+    .nav-link:hover::after, .nav-link.active::after { height: 100%; }
+
+    /* ── LANGUAGE SWITCHER ── */
+    .lang-switcher {
+      position: absolute; bottom: 120px;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .lang-toggle {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text2); transition: color 0.3s ease; padding: 6px;
+    }
+    .lang-toggle:hover { color: var(--gold); }
+    .lang-toggle i { font-size: 18px; }
+    .lang-current { font-size: 9px; letter-spacing: 2px; font-family: 'Inter', sans-serif; font-weight: 500; }
+    .lang-dropdown {
+      position: absolute; left: 64px; bottom: 0;
+      background: rgba(10,10,15,0.97);
+      border: 1px solid rgba(200,151,58,0.25);
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column;
+      min-width: 130px;
+      opacity: 0; pointer-events: none;
+      transform: translateX(-8px);
+      transition: all 0.3s ease; z-index: 200;
+    }
+    .lang-dropdown.open { opacity: 1; pointer-events: all; transform: translateX(0); }
+    .lang-opt {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text2); font-size: 12px; letter-spacing: 1px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(200,151,58,0.08);
+      white-space: nowrap;
+    }
+    .lang-opt:last-child { border-bottom: none; }
+    .lang-opt:hover { color: var(--gold); background: rgba(200,151,58,0.06); }
+    .lang-opt.active { color: var(--gold); }
+    .lang-opt.active::after { content: '◆'; font-size: 6px; margin-left: auto; color: var(--gold); }
+    .lang-flag { font-size: 16px; }
+
+    .nav-socials { position: absolute; bottom: 28px; display: flex; flex-direction: column; gap: 16px; }
+    .nav-socials a { color: var(--text2); font-size: 16px; transition: color .3s; text-decoration: none; }
+    .nav-socials a:hover { color: var(--gold); }
+
+    main { margin-left: 72px; position: relative; z-index: 1; }
+
+    .page-title { padding: 100px 80px 60px; background: var(--ink2); border-bottom: 1px solid rgba(200,151,58,.1); position: relative; overflow: hidden; }
+    .page-title::before { content: ''; position: absolute; bottom: 0; left: 80px; right: 80px; height: 1px; background: linear-gradient(to right, var(--gold), transparent); }
+    .breadcrumb-row { display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text2); margin-bottom: 20px; }
+    .breadcrumb-row a { color: var(--text2); text-decoration: none; transition: color .3s; }
+    .breadcrumb-row a:hover { color: var(--gold); }
+    .breadcrumb-row .sep { color: rgba(200,151,58,.4); }
+    .breadcrumb-row .current { color: var(--gold); }
+    .page-title h1 { font-family: 'Cinzel', serif; font-size: clamp(28px, 5vw, 56px); font-weight: 900; color: #fff; line-height: 1; opacity: 0; animation: fadeUp 1s .3s forwards; }
+    .page-title-cat { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; margin-top: 12px; display: flex; align-items: center; gap: 12px; opacity: 0; animation: fadeUp 1s .5s forwards; }
+    .page-title-cat::before { content: ''; display: block; width: 30px; height: 1px; background: var(--gold); }
+
+    .detail-section { padding: 80px; }
+    .project-layout { display: grid; grid-template-columns: 1fr 340px; gap: 60px; align-items: start; }
+
+    .slider-wrap { position: relative; background: var(--ink2); overflow: hidden; }
+    .slider-track { display: flex; transition: transform .6s cubic-bezier(.25,.46,.45,.94); }
+    .slide { min-width: 100%; aspect-ratio: 16/9; overflow: hidden; }
+    .slide img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.9); display: block; }
+    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(10,10,15,.8); border: 1px solid rgba(200,151,58,.3); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; z-index: 10; transition: all .3s ease; }
+    .slider-btn:hover { background: var(--gold); color: var(--ink); }
+    .slider-prev { left: 16px; }
+    .slider-next { right: 16px; }
+    .slider-dots { display: flex; gap: 8px; justify-content: center; padding: 16px 0; }
+    .slider-dot { width: 6px; height: 6px; background: rgba(200,151,58,.3); cursor: pointer; transform: rotate(45deg); transition: all .3s; }
+    .slider-dot.active { background: var(--gold); width: 18px; transform: rotate(0deg); }
+
+    .project-info { padding: 36px; border: 1px solid rgba(200,151,58,.15); background: rgba(200,151,58,.02); position: relative; }
+    .project-info::before { content: ''; position: absolute; top: 0; left: 0; width: 40px; height: 40px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+    .project-info::after { content: ''; position: absolute; bottom: 0; right: 0; width: 40px; height: 40px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+    .project-info h3 { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: var(--gold); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(200,151,58,.15); }
+    .info-row { padding: 12px 0; border-bottom: 1px solid rgba(200,151,58,.08); display: flex; flex-direction: column; gap: 4px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-size: 9px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; }
+    .info-value { font-size: 14px; color: var(--text); }
+    .info-value a { color: var(--gold2); text-decoration: none; transition: color .3s; }
+    .info-value a:hover { color: var(--gold); text-decoration: underline; }
+
+    .project-desc { margin-top: 60px; }
+    .section-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+    .section-label::before { content: ''; display: block; width: 40px; height: 1px; background: var(--gold); }
+    .desc-title { font-family: 'Cinzel', serif; font-size: clamp(28px,4vw,48px); font-weight: 900; color: #fff; margin-bottom: 32px; line-height: 1.1; }
+    .desc-body p { font-size: 15px; color: var(--text2); line-height: 2; margin-bottom: 16px; }
+    .desc-body p strong { color: var(--gold); font-weight: 500; }
+
+    .art-divider { display: flex; align-items: center; gap: 20px; margin: 56px 0; }
+    .art-divider-line { flex: 1; height: 1px; background: rgba(200,151,58,.2); }
+    .art-divider-ornament { width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); }
+
+    .features-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; margin-bottom: 36px; display: flex; align-items: center; gap: 12px; }
+    .features-label::before { content: ''; display: block; width: 40px; height: 1px; background: var(--gold); }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .feature-card { padding: 40px 36px; background: var(--ink2); border: 1px solid rgba(200,151,58,.08); position: relative; overflow: hidden; transition: all .4s ease; }
+    .feature-card::before { content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 0; background: var(--gold); transition: height .4s ease; }
+    .feature-card:hover { border-color: rgba(200,151,58,.3); }
+    .feature-card:hover::before { height: 100%; }
+    .feature-card-icon { font-size: 28px; color: var(--gold); margin-bottom: 20px; display: block; }
+    .feature-card h4 { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 12px; line-height: 1.4; }
+    .feature-card p { font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+    .image-grid-section { padding: 0 80px 80px; }
+    .image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .grid-img-wrap { overflow: hidden; aspect-ratio: 4/3; background: var(--ink2); }
+    .grid-img-wrap img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.8) saturate(.8); transition: all .6s ease; cursor: pointer; display: block; }
+    .grid-img-wrap:hover img { transform: scale(1.08); filter: brightness(1) saturate(1); }
+
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(10,10,15,.96); z-index: 9000; align-items: center; justify-content: center; }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 90vw; max-height: 88vh; object-fit: contain; }
+    .lb-close { position: absolute; top: 24px; right: 32px; font-size: 28px; color: var(--gold); cursor: pointer; background: none; border: none; }
+    .lb-prev, .lb-next { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; background: rgba(200,151,58,.15); border: 1px solid rgba(200,151,58,.3); color: var(--gold); font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .3s; }
+    .lb-prev { left: 20px; } .lb-next { right: 20px; }
+    .lb-prev:hover, .lb-next:hover { background: var(--gold); color: var(--ink); }
+
+    .back-bar { padding: 0 80px 24px; }
+    .back-btn { display: inline-flex; align-items: center; gap: 10px; color: var(--text2); text-decoration: none; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; transition: color .3s; }
+    .back-btn:hover { color: var(--gold); }
+
+    footer { background: var(--ink); border-top: 1px solid rgba(200,151,58,.1); padding: 32px 80px 32px 152px; display: flex; justify-content: space-between; align-items: center; }
+    footer p { font-size: 12px; color: var(--text2); letter-spacing: 2px; }
+    .footer-name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); letter-spacing: 4px; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity .8s ease, transform .8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1100px) { .project-layout { grid-template-columns: 1fr; } .project-info { position: static; } }
+    @media (max-width: 768px) {
+      .detail-section, .image-grid-section, .back-bar { padding-left: 24px; padding-right: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .image-grid { grid-template-columns: 1fr 1fr; }
+      footer { padding-left: 24px; padding-right: 24px; flex-direction: column; gap: 8px; }
+    }
+    @media (max-width: 640px) {
+      main { margin-left: 0; padding-top: 72px; }
+      #nav { height: 72px; width: 100%; top: 0; flex-direction: row; justify-content: center; border-right: none; border-bottom: 1px solid rgba(200,151,58,0.12); }
+      .nav-logo, .nav-socials { display: none; }
+      .nav-link span { display: none; }
+      .lang-switcher { position: static; bottom: auto; }
+      .lang-dropdown { left: 50%; bottom: 52px; transform: translateX(-50%) translateY(4px); }
+      .lang-dropdown.open { transform: translateX(-50%) translateY(0); }
+      .page-title { padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lb-close"><i class="bi bi-x-lg"></i></button>
+  <button class="lb-prev" id="lb-prev"><i class="bi bi-chevron-left"></i></button>
+  <img id="lb-img" src="" alt="">
+  <button class="lb-next" id="lb-next"><i class="bi bi-chevron-right"></i></button>
+</div>
+
+<nav id="nav">
+  <span class="nav-logo">NVH</span>
+
+  <a href="index.html#hero"       class="nav-link"><i class="bi bi-house"></i>      <span data-i18n="nav_home">Home</span></a>
+  <a href="index.html#about"      class="nav-link"><i class="bi bi-person"></i>     <span data-i18n="nav_about">About</span></a>
+  <a href="index.html#skills"     class="nav-link"><i class="bi bi-cpu"></i>         <span data-i18n="nav_skills">Skills</span></a>
+  <a href="index.html#experience" class="nav-link"><i class="bi bi-briefcase"></i>  <span data-i18n="nav_cv">CV</span></a>
+  <a href="index.html#portfolio"  class="nav-link active"><i class="bi bi-grid"></i><span data-i18n="nav_work">Work</span></a>
+  <a href="index.html#reviews"    class="nav-link"><i class="bi bi-chat-quote"></i> <span data-i18n="nav_reviews">Review</span></a>
+  <a href="index.html#contact"    class="nav-link"><i class="bi bi-envelope"></i>   <span data-i18n="nav_contact">Contact</span></a>
+
+  <!-- Language Switcher -->
+  <div class="lang-switcher" id="lang-switcher">
+    <button class="lang-toggle" id="lang-toggle" title="Language">
+      <i class="bi bi-translate"></i>
+      <span class="lang-current" id="lang-current-label">VI</span>
+    </button>
+    <div class="lang-dropdown" id="lang-dropdown">
+      <button class="lang-opt active" data-lang="vi">
+        <span class="lang-flag">🇻🇳</span><span>Việt</span>
+      </button>
+      <button class="lang-opt" data-lang="en">
+        <span class="lang-flag">🇬🇧</span><span>English</span>
+      </button>
+      <button class="lang-opt" data-lang="ja">
+        <span class="lang-flag">🇯🇵</span><span>日本語</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav-socials">
+    <a href="https://www.facebook.com/22nguyenvanhau" target="_blank"><i class="bi bi-facebook"></i></a>
+    <a href="https://github.com/Ga-Mo221" target="_blank"><i class="bi bi-github"></i></a>
+    <a href="https://www.linkedin.com/in/hậu-nguyễn-b97a9b3bb/" target="_blank"><i class="bi bi-linkedin"></i></a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">
+    <div class="breadcrumb-row">
+      <a href="index.html" data-i18n="breadcrumb_home">Trang Chủ</a>
+      <span class="sep">◆</span>
+      <span class="current">Sơn Thủy Truyền Kỳ</span>
+    </div>
+    <h1>SƠN THỦY TRUYỀN KỲ</h1>
+    <div class="page-title-cat" data-i18n="page_cat">Game 2D · Metroidvania · Unity</div>
+  </div>
+
+  <div class="detail-section">
+    <div class="project-layout">
+
+      <div>
+        <div class="slider-wrap reveal">
+          <div class="slider-track" id="sliderTrack">
+            <div class="slide"><img src="assets/img/portfolio/LATS_bg.png" alt="LATS"></div>
+            <div class="slide"><img src="assets/img/portfolio/LATS_maclien.png" alt="LATS"></div>
+            <div class="slide"><img src="assets/img/portfolio/LATS_gameplay_ (2).png" alt="LATS"></div>
+            <div class="slide"><img src="assets/img/portfolio/LATS_gameplay_ (1).png" alt="LATS"></div>
+            <div class="slide"><img src="assets/img/portfolio/LATS_gameplay_ (3).png" alt="LATS"></div>
+            <div class="slide"><img src="assets/img/portfolio/LATS_gameplay_ (4).png" alt="LATS"></div>
+            <div class="slide"><img src="assets/img/portfolio/LATS_gameplay.png" alt="LATS"></div>
+          </div>
+          <button class="slider-btn slider-prev" id="sliderPrev"><i class="bi bi-chevron-left"></i></button>
+          <button class="slider-btn slider-next" id="sliderNext"><i class="bi bi-chevron-right"></i></button>
+          <div class="slider-dots" id="sliderDots"></div>
+        </div>
+      </div>
+
+      <div class="project-info reveal" style="transition-delay:.2s">
+        <h3 data-i18n="info_title">Thông Tin Dự Án</h3>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_genre">Thể Loại</span>
+          <span class="info-value" data-i18n="info_genre_val">Game 2D · Metroidvania</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_project">Dự Án</span>
+          <span class="info-value">V-UNIQUE PROJECT AWARD 2025</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_team">Nhân Sự</span>
+          <span class="info-value">3 <span data-i18n="info_people">người</span></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_contrib">Đóng Góp</span>
+          <span class="info-value">65% <span data-i18n="info_contrib_val">code</span></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Asset</span>
+          <span class="info-value" data-i18n="info_asset_val">Tự thiết kế</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label" data-i18n="info_time">Thời Gian</span>
+          <span class="info-value">6/2025 – 11/2025</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Project URL</span>
+          <span class="info-value"><a href="https://github.com/Ga-Mo221/LATS-Release.git" target="_blank"><i class="bi bi-github"></i> GitHub</a></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-desc reveal" style="transition-delay:.1s">
+      <div class="section-label" data-i18n="overview_label">Tổng Quan</div>
+      <h2 class="desc-title">Project Overview</h2>
+      <div class="desc-body">
+        <p data-i18n="desc_p1"><strong>Sơn Thủy Truyền Kỳ: Linh Ấn Thần Sơn</strong> là một tựa game 2D Action Platformer – Metroidvania lấy cảm hứng từ thần thoại Việt Nam, đặc biệt là truyền thuyết Sơn Tinh – Thủy Tinh.</p>
+        <p data-i18n="desc_p2">Người chơi vào vai <strong>Mạc Liên</strong>, một thiếu niên mang dấu ấn cổ xưa, bước vào hành trình khám phá đại lục Việt Cổ đang bị "Thủy Lấn" xâm thực. Thông qua chiến đấu, khám phá và lựa chọn đạo đức, người chơi dần mở khóa sức mạnh thần linh để tái lập phong ấn ngàn năm.</p>
+        <p data-i18n="desc_p3">Game tập trung vào chiến đấu kỹ năng cao, khám phá phi tuyến tính, kể chuyện thông qua gameplay và bản sắc văn hóa Việt được thể hiện bằng ngôn ngữ game hiện đại. Nền tảng phát triển chính: PC. Mô hình phát hành: Premium game.</p>
+      </div>
+    </div>
+
+    <div class="art-divider reveal"><div class="art-divider-line"></div><div class="art-divider-ornament"></div><div class="art-divider-line"></div></div>
+
+    <div class="reveal">
+      <div class="features-label" data-i18n="features_label">Tóm Tắt Dự Án</div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <i class="bi bi-check-circle-fill feature-card-icon"></i>
+          <h4 data-i18n="feat1_title">Metroidvania Mang Bản Sắc Thần Thoại Việt</h4>
+          <p data-i18n="feat1_desc">Game khai thác truyền thuyết Sơn Tinh – Thủy Tinh bằng thiết kế gameplay hiện đại, nơi mỗi vùng đất, kỹ năng và boss đều gắn với yếu tố văn hóa và phong thủy Việt cổ.</p>
+        </div>
+        <div class="feature-card">
+          <i class="bi bi-shield-check feature-card-icon"></i>
+          <h4 data-i18n="feat2_title">Hệ Thống Kỹ Năng Gắn Liền Cốt Truyện</h4>
+          <p data-i18n="feat2_desc">Kỹ năng không chỉ là nâng cấp sức mạnh mà là di sản của các nhân vật và thần linh, được mở khóa thông qua boss, NPC và các sự kiện cốt truyện.</p>
+        </div>
+        <div class="feature-card">
+          <i class="bi bi-graph-up feature-card-icon"></i>
+          <h4 data-i18n="feat3_title">Chiến Đấu Kỹ Năng Cao &amp; Khám Phá Phi Tuyến</h4>
+          <p data-i18n="feat3_desc">Gameplay kết hợp dash, parry, combo cận chiến; boss battle yêu cầu timing &amp; chiến thuật; bản đồ mở dần theo năng lực người chơi (classic metroidvania loop).</p>
+        </div>
+        <div class="feature-card">
+          <i class="bi bi-diagram-3 feature-card-icon"></i>
+          <h4 data-i18n="feat4_title">Cốt Truyện Phân Nhánh Theo Lựa Chọn</h4>
+          <p data-i18n="feat4_desc">Hành động và quyết định của người chơi ảnh hưởng trực tiếp đến kết cục: Hy sinh, Cứu rỗi, Bóng tối hay Chiến thắng. Gameplay và narrative hòa làm một thay vì tách rời.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="image-grid-section reveal">
+    <div class="art-divider" style="margin-bottom:36px"><div class="art-divider-line"></div><div class="art-divider-ornament"></div><div class="art-divider-line"></div></div>
+    <div class="image-grid" id="imageGrid">
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/LATS_bg.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/LATS_maclien.png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/LATS_gameplay_ (2).png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/LATS_gameplay_ (1).png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/LATS_gameplay_ (3).png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/LATS_gameplay_ (4).png" alt=""></div>
+      <div class="grid-img-wrap"><img src="assets/img/portfolio/LATS_gameplay.png" alt=""></div>
+    </div>
+  </div>
+
+  <div class="back-bar">
+    <a href="index.html#portfolio" class="back-btn">
+      <i class="bi bi-arrow-left"></i>
+      <span data-i18n="back_btn">Quay Lại Portfolio</span>
+    </a>
+  </div>
+</main>
+
+<footer>
+  <p>© 2025 <span class="footer-name">Nguyễn Văn Hậu</span></p>
+  <p style="font-size:11px;color:rgba(154,143,128,.5)" data-i18n="footer_sub">Game Developer · 3D Artist · Đà Nẵng, Việt Nam</p>
+</footer>
+
+<script>
+(function(){
+
+  /* ════════════════════════════════════════════
+     i18n TRANSLATIONS
+  ════════════════════════════════════════════ */
+  const TRANSLATIONS = {
+    vi: {
+      nav_home:'Home', nav_about:'About', nav_skills:'Skills',
+      nav_cv:'CV', nav_work:'Work', nav_reviews:'Review', nav_contact:'Contact',
+      breadcrumb_home:'Trang Chủ',
+      page_cat:'Game 2D · Metroidvania · Unity',
+      info_title:'Thông Tin Dự Án',
+      info_genre:'Thể Loại', info_genre_val:'Game 2D · Metroidvania',
+      info_project:'Dự Án',
+      info_team:'Nhân Sự', info_people:'người',
+      info_contrib:'Đóng Góp', info_contrib_val:'code',
+      info_asset_val:'Tự thiết kế',
+      info_time:'Thời Gian',
+      overview_label:'Tổng Quan',
+      desc_p1:'<strong>Sơn Thủy Truyền Kỳ: Linh Ấn Thần Sơn</strong> là một tựa game 2D Action Platformer – Metroidvania lấy cảm hứng từ thần thoại Việt Nam, đặc biệt là truyền thuyết Sơn Tinh – Thủy Tinh.',
+      desc_p2:'Người chơi vào vai <strong>Mạc Liên</strong>, một thiếu niên mang dấu ấn cổ xưa, bước vào hành trình khám phá đại lục Việt Cổ đang bị "Thủy Lấn" xâm thực. Thông qua chiến đấu, khám phá và lựa chọn đạo đức, người chơi dần mở khóa sức mạnh thần linh để tái lập phong ấn ngàn năm.',
+      desc_p3:'Game tập trung vào chiến đấu kỹ năng cao, khám phá phi tuyến tính, kể chuyện thông qua gameplay và bản sắc văn hóa Việt được thể hiện bằng ngôn ngữ game hiện đại. Nền tảng phát triển chính: PC. Mô hình phát hành: Premium game.',
+      features_label:'Tóm Tắt Dự Án',
+      feat1_title:'Metroidvania Mang Bản Sắc Thần Thoại Việt',
+      feat1_desc:'Game khai thác truyền thuyết Sơn Tinh – Thủy Tinh bằng thiết kế gameplay hiện đại, nơi mỗi vùng đất, kỹ năng và boss đều gắn với yếu tố văn hóa và phong thủy Việt cổ.',
+      feat2_title:'Hệ Thống Kỹ Năng Gắn Liền Cốt Truyện',
+      feat2_desc:'Kỹ năng không chỉ là nâng cấp sức mạnh mà là di sản của các nhân vật và thần linh, được mở khóa thông qua boss, NPC và các sự kiện cốt truyện.',
+      feat3_title:'Chiến Đấu Kỹ Năng Cao & Khám Phá Phi Tuyến',
+      feat3_desc:'Gameplay kết hợp dash, parry, combo cận chiến; boss battle yêu cầu timing & chiến thuật; bản đồ mở dần theo năng lực người chơi (classic metroidvania loop).',
+      feat4_title:'Cốt Truyện Phân Nhánh Theo Lựa Chọn',
+      feat4_desc:'Hành động và quyết định của người chơi ảnh hưởng trực tiếp đến kết cục: Hy sinh, Cứu rỗi, Bóng tối hay Chiến thắng. Gameplay và narrative hòa làm một thay vì tách rời.',
+      back_btn:'Quay Lại Portfolio',
+      footer_sub:'Game Developer · 3D Artist · Đà Nẵng, Việt Nam'
+    },
+    en: {
+      nav_home:'Home', nav_about:'About', nav_skills:'Skills',
+      nav_cv:'CV', nav_work:'Work', nav_reviews:'Review', nav_contact:'Contact',
+      breadcrumb_home:'Home',
+      page_cat:'2D Game · Metroidvania · Unity',
+      info_title:'Project Info',
+      info_genre:'Genre', info_genre_val:'2D Game · Metroidvania',
+      info_project:'Project',
+      info_team:'Team', info_people:'people',
+      info_contrib:'Contribution', info_contrib_val:'code',
+      info_asset_val:'Self-designed',
+      info_time:'Duration',
+      overview_label:'Overview',
+      desc_p1:'<strong>Sơn Thủy Truyền Kỳ: Linh Ấn Thần Sơn</strong> is a 2D Action Platformer – Metroidvania inspired by Vietnamese mythology, particularly the legend of Sơn Tinh and Thủy Tinh.',
+      desc_p2:'Players take on the role of <strong>Mạc Liên</strong>, a young boy bearing an ancient seal, embarking on a journey through the ancient Vietnamese continent being invaded by the "Thủy Lấn" flood. Through combat, exploration, and moral choices, players gradually unlock divine power to restore the thousand-year seal.',
+      desc_p3:'The game focuses on high-skill combat, non-linear exploration, narrative through gameplay, and Vietnamese cultural identity expressed through a modern game language. Primary platform: PC. Release model: Premium game.',
+      features_label:'Project Summary',
+      feat1_title:'Metroidvania with Vietnamese Mythological Identity',
+      feat1_desc:'The game draws on the Sơn Tinh – Thủy Tinh legend through modern gameplay design, where every region, skill, and boss is tied to ancient Vietnamese culture and feng shui elements.',
+      feat2_title:'Story-Integrated Skill System',
+      feat2_desc:'Skills are not just power upgrades — they are the legacy of characters and deities, unlocked through bosses, NPCs, and story events.',
+      feat3_title:'High-Skill Combat & Non-Linear Exploration',
+      feat3_desc:'Gameplay combines dash, parry, and melee combos; boss battles require precise timing and tactics; the map opens progressively based on player abilities (classic metroidvania loop).',
+      feat4_title:'Choice-Driven Branching Narrative',
+      feat4_desc:'Player actions and decisions directly influence the ending: Sacrifice, Salvation, Darkness, or Victory. Gameplay and narrative are unified rather than separate.',
+      back_btn:'Back to Portfolio',
+      footer_sub:'Game Developer · 3D Artist · Da Nang, Vietnam'
+    },
+    ja: {
+      nav_home:'ホーム', nav_about:'自己紹介', nav_skills:'スキル',
+      nav_cv:'経歴', nav_work:'作品', nav_reviews:'レビュー', nav_contact:'連絡',
+      breadcrumb_home:'ホーム',
+      page_cat:'2Dゲーム · メトロイドヴァニア · Unity',
+      info_title:'プロジェクト情報',
+      info_genre:'ジャンル', info_genre_val:'2Dゲーム · メトロイドヴァニア',
+      info_project:'プロジェクト',
+      info_team:'チーム', info_people:'人',
+      info_contrib:'貢献度', info_contrib_val:'コード',
+      info_asset_val:'自己デザイン',
+      info_time:'制作期間',
+      overview_label:'概要',
+      desc_p1:'<strong>Sơn Thủy Truyền Kỳ: Linh Ấn Thần Sơn</strong>は、ベトナム神話、特にSơn Tinh（山の神）とThủy Tinh（水の神）の伝説にインスパイアされた2Dアクションプラットフォーマー・メトロイドヴァニアです。',
+      desc_p2:'プレイヤーは古代の印を持つ少年<strong>Mạc Liên</strong>となり、「Thủy Lấn」（洪水の侵食）に脅かされる古代ベトナム大陸を探索します。戦闘・探索・道徳的選択を通じて神の力を解放し、千年の封印を再構築していきます。',
+      desc_p3:'高スキルの戦闘、非線形探索、ゲームプレイを通じたストーリーテリング、そして現代のゲーム言語で表現されたベトナム文化的アイデンティティに焦点を当てています。主要プラットフォーム：PC。リリース形態：プレミアムゲーム。',
+      features_label:'プロジェクト概要',
+      feat1_title:'ベトナム神話のアイデンティティを持つメトロイドヴァニア',
+      feat1_desc:'Sơn Tinh – Thủy Tinh伝説を現代のゲームプレイデザインで表現。���エリア・スキル・ボスが古代ベトナムの文化と風水の要素と結びついています。',
+      feat2_title:'ストーリーと連動したスキルシステム',
+      feat2_desc:'スキルは単なる強化ではなく、キャラクターや神々の遺産。ボス・NPC・ストーリーイベントを通じて解放されます。',
+      feat3_title:'高スキル戦闘 & 非線形探索',
+      feat3_desc:'ダッシュ・パリィ・近接コンボを組み合わせたゲームプレイ。ボス戦は精密なタイミングと戦術が必要。プレイヤーの能力に応じてマップが段階的に開放されるクラシックなメトロイドヴァニアループ。',
+      feat4_title:'選択による分岐ナラティブ',
+      feat4_desc:'プレイヤーの行動と決断がエンディングに直接影響：犠牲・救済・闇・勝利。ゲームプレイとナラティブが分離せず一体となっています。',
+      back_btn:'ポートフォリオに戻る',
+      footer_sub:'ゲーム開発者 · 3Dアーティスト · ベトナム・ダナン'
+    }
+  };
+
+  const LANG_LABELS = { vi:'VI', en:'EN', ja:'JP' };
+  let currentLang = localStorage.getItem('nvh_lang') || 'vi';
+
+  /* ── APPLY LANGUAGE ── */
+  function applyLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('nvh_lang', lang);
+    const t = TRANSLATIONS[lang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (t[key] !== undefined) el.innerHTML = t[key];
+    });
+    document.querySelectorAll('.lang-opt').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    document.getElementById('lang-current-label').textContent = LANG_LABELS[lang];
+    document.documentElement.lang = lang === 'ja' ? 'ja' : lang === 'en' ? 'en' : 'vi';
+    document.getElementById('lang-dropdown').classList.remove('open');
+  }
+
+  /* ── DROPDOWN TOGGLE ── */
+  document.getElementById('lang-toggle').addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('lang-dropdown').classList.toggle('open');
+  });
+
+  /* ── OPTION CLICK ── */
+  document.querySelectorAll('.lang-opt').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      applyLang(this.dataset.lang);
+    });
+  });
+
+  /* ── CLOSE ON OUTSIDE CLICK ── */
+  document.addEventListener('click', function() {
+    document.getElementById('lang-dropdown').classList.remove('open');
+  });
+
+  /* ── INIT LANGUAGE ── */
+  applyLang(currentLang);
+
+  /* ════════════════════════════════════════════
+     CANVAS BG
+  ════════════════════════════════════════════ */
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  class Particle {
+    constructor(){ this.reset(); }
+    reset(){ this.x=Math.random()*W; this.y=Math.random()*H; this.size=Math.random()*1.5+.3; this.speedX=(Math.random()-.5)*.3; this.speedY=-Math.random()*.5-.1; this.opacity=Math.random()*.4+.1; this.life=0; this.maxLife=Math.random()*300+200; }
+    update(){ this.x+=this.speedX; this.y+=this.speedY; this.life++; if(this.life>this.maxLife||this.y<0) this.reset(); }
+    draw(){ const f=this.life<30?this.life/30:this.life>this.maxLife-30?(this.maxLife-this.life)/30:1; ctx.globalAlpha=this.opacity*f; ctx.fillStyle='#c8973a'; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); }
+  }
+  function init(){ particles=[]; for(let i=0;i<60;i++){ const p=new Particle(); p.life=Math.floor(Math.random()*p.maxLife); particles.push(p); } }
+  function anim(){ ctx.clearRect(0,0,W,H); ctx.globalAlpha=.025; ctx.strokeStyle='#c8973a'; ctx.lineWidth=.5; for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();} for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();} particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(anim); }
+  resize(); init(); anim(); window.addEventListener('resize', resize);
+
+  /* ════════════════════════════════════════════
+     CURSOR
+  ════════════════════════════════════════════ */
+  const cur = document.getElementById('cursor'), ring = document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{ mx=e.clientX; my=e.clientY; cur.style.left=mx+'px'; cur.style.top=my+'px'; });
+  (function ac(){ rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(ac); })();
+  document.querySelectorAll('a,button,.grid-img-wrap').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{ cur.style.width='16px'; cur.style.height='16px'; ring.style.width='56px'; ring.style.height='56px'; });
+    el.addEventListener('mouseleave',()=>{ cur.style.width='8px'; cur.style.height='8px'; ring.style.width='36px'; ring.style.height='36px'; });
+  });
+
+  /* ════════════════════════════════════════════
+     SLIDER
+  ════════════════════════════════════════════ */
+  const track=document.getElementById('sliderTrack');
+  const dotsWrap=document.getElementById('sliderDots');
+  const slides=track?track.querySelectorAll('.slide'):[];
+  let cur2=0;
+  function goTo(i){ cur2=i; track.style.transform=`translateX(-${i*100}%)`; dotsWrap.querySelectorAll('.slider-dot').forEach((d,di)=>d.classList.toggle('active',di===i)); }
+  if(slides.length){
+    slides.forEach((_,i)=>{ const d=document.createElement('div'); d.className='slider-dot'+(i===0?' active':''); d.onclick=()=>goTo(i); dotsWrap.appendChild(d); });
+    document.getElementById('sliderPrev').onclick=()=>goTo((cur2-1+slides.length)%slides.length);
+    document.getElementById('sliderNext').onclick=()=>goTo((cur2+1)%slides.length);
+    setInterval(()=>goTo((cur2+1)%slides.length),5000);
+  }
+
+  /* ════════════════════════════════════════════
+     SCROLL REVEAL
+  ════════════════════════════════════════════ */
+  const obs=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); }),{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  /* ════════════════════════════════════════════
+     LIGHTBOX
+  ════════════════════════════════════════════ */
+  const lb=document.getElementById('lightbox'), lbImg=document.getElementById('lb-img');
+  const gridImgs=Array.from(document.querySelectorAll('#imageGrid img'));
+  let lbIdx=0;
+  function openLb(i){ lbIdx=i; lbImg.src=gridImgs[i].src; lb.classList.add('open'); }
+  gridImgs.forEach((img,i)=>img.addEventListener('click',()=>openLb(i)));
+  document.getElementById('lb-close').onclick=()=>lb.classList.remove('open');
+  document.getElementById('lb-prev').onclick=()=>openLb((lbIdx-1+gridImgs.length)%gridImgs.length);
+  document.getElementById('lb-next').onclick=()=>openLb((lbIdx+1)%gridImgs.length);
+  lb.addEventListener('click',e=>{ if(e.target===lb) lb.classList.remove('open'); });
+  document.addEventListener('keydown',e=>{
+    if(!lb.classList.contains('open')) return;
+    if(e.key==='Escape') lb.classList.remove('open');
+    if(e.key==='ArrowLeft') openLb((lbIdx-1+gridImgs.length)%gridImgs.length);
+    if(e.key==='ArrowRight') openLb((lbIdx+1)%gridImgs.length);
+  });
+
+})();
+</script>
+</body>
+</html>
