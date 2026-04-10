@@ -213,12 +213,14 @@
     }
     @media (max-width: 640px) {
       main { margin-left: 0; padding-top: 72px; }
-      #nav { height: 72px; width: 100%; top: 0; flex-direction: row; justify-content: center; border-right: none; border-bottom: 1px solid rgba(200,151,58,0.12); }
+      #nav { height: 72px; width: 100%; top: 0; flex-direction: row; justify-content: space-evenly; gap: 0; padding: 0; border-right: none; border-bottom: 1px solid rgba(200,151,58,0.12); }
       .nav-logo, .nav-socials { display: none; }
+      .nav-link { min-height: 72px; padding: 0 6px; justify-content: center; }
       .nav-link span { display: none; }
-      .lang-switcher { position: static; bottom: auto; }
-      .lang-dropdown { left: 50%; bottom: 52px; transform: translateX(-50%) translateY(4px); }
-      .lang-dropdown.open { transform: translateX(-50%) translateY(0); }
+      .lang-switcher { position: relative; }
+      .lang-toggle { min-height: 72px; min-width: 40px; justify-content: center; }
+      .lang-dropdown { position: fixed; top: 72px; right: 0; left: auto; bottom: auto; transform: translateY(-4px); }
+      .lang-dropdown.open { transform: translateY(0); }
       .page-title { padding: 40px 24px; }
     }
   </style>
